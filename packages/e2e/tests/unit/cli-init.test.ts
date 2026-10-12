@@ -639,6 +639,17 @@ describe('e2e init', () => {
     expect(output()).not.toContain('Linked .claude/skills/e2e -> ');
   });
 
+  it.skipIf(!symlinks)('leaves a copy whose retired reference is a symlink alone, and names the link', async () => {
+    writeCopy('.agents/skills');
+    const mine = path.join(dir, 'mine.md');
+    writeFileSync(mine, 'mine\n');
+    symlinkSync(path.join('..', '..', '..', '..', 'mine.md'), path.join(dir, '.agents/skills/e2e/references/mcp.md'));
+    expect((await init(dir, { yes: true })).exitCode).toBe(0);
+    expect(output()).toContain(`Symlink, not touching: .agents/skills/e2e/ (.agents/skills/e2e/references/mcp.md -> ${realpathSync(mine)})`);
+    expect(lstatSync(path.join(dir, '.agents/skills/e2e/references/mcp.md')).isSymbolicLink()).toBe(true);
+    expect(read('mine.md')).toBe('mine\n');
+  });
+
   it.skipIf(!symlinks)('keeps an earlier copy in .claude/skills whose SKILL.md is a symlink, and leaves that link alone', async () => {
     writeCopy('.agents/skills');
     writeCopy('.claude/skills');

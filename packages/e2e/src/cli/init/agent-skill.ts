@@ -58,7 +58,7 @@ interface SkillInstallBase {
 interface SkillCopy extends SkillInstallBase {
   readonly kind: 'copy';
   readonly files: readonly { readonly absolute: string; readonly content: string }[];
-  /** Absolute paths of the retired files the copy still holds, removed with the write. */
+  /** Absolute paths of the retired entries the copy still holds, removed with the write. */
   readonly retired: readonly string[];
 }
 
@@ -107,8 +107,9 @@ export function planSkillInstall(cwd: string, dirs: readonly string[], skill: Bu
   for (const dir of dirs) {
     const root = path.join(cwd, dir, skill.name);
     const files = skill.files.map((file) => ({ absolute: path.join(root, file.relative), content: file.content }));
+    // Any entry counts, so a symlink or directory at a retired path is reported like one at a shipped path.
     const retired = skill.retired.map((relative) => path.join(root, relative))
-      .filter((absolute) => lstatOrUndefined(absolute)?.isFile() === true);
+      .filter((absolute) => lstatOrUndefined(absolute) !== undefined);
     const { links, obstacles } = findBlockers(cwd, root, [...files.map((file) => file.absolute), ...retired]);
     const current = links.length === 0 && obstacles.length === 0 && retired.length === 0
       && files.every((file) => currentContent(file.absolute) === file.content);

@@ -166,8 +166,8 @@ suites that consume the built packages the way a user would.
   them for agents to read offline.
 - `skills/e2e/`, `skills/e2e-mcp/`, `skills/e2e-bug-bash/` — the agent
   skills for consumers, listed on skills.sh (`skills.sh/tester-army/e2e`).
-  `e2e` is `SKILL.md` plus `references/<topic>.md`, one per `e2e guide`
-  topic; each `e2e-<topic>` sibling is one job big enough to install alone
+  `e2e` is `SKILL.md` plus `references/<topic>.md`, one per reference
+  topic of `e2e guide`; each `e2e-<topic>` sibling is one job big enough to install alone
   and is served as `e2e guide <topic>`. A sibling refers to the others by
   topic, never by relative path, since `npx skills add --skill` can install
   it alone. They live at the repo root because `npx skills add

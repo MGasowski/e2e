@@ -289,7 +289,8 @@ export async function init(cwd: string, options: InitOptions = {}): Promise<Init
       mkdirSync(path.dirname(file.absolute), { recursive: true });
       writeFileSync(file.absolute, file.content, 'utf8');
     }
-    for (const retired of skill.retired) unlinkSync(retired);
+    // force: a retired path that was a replaced symlink is already gone with the links above.
+    for (const retired of skill.retired) rmSync(retired, { force: true });
     const verb = skill.links.length > 0 ? 'Replaced' : skill.existing ? 'Updated' : 'Created';
     const removed = skill.retired.length > 0 ? `, removed ${skill.retired.length} no longer shipped` : '';
     clack.log.success(`${verb} ${skill.relative}/ (${skill.files.length} files${removed})`);
