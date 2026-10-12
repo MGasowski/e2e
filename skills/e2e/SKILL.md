@@ -1,6 +1,6 @@
 ---
 name: e2e
-description: Agentic end-to-end tests with e2e, the e2e runner. Covers scaffolding e2e.config.ts, picking the Playwright browser engine or the agent-device mobile engine, starting the app under test from the config, driving flows with agent.act, judging with agent.assert, agent.waitFor, and agent.extract, pinning values with screen, app, browser, and expect, shaping the agent (context, system prompt, tools, personas), the replay cache, the e2e CLI, reading .e2e/report.json, and bug bashes (parallel explore runs proven with repro tests). Use when a project depends on e2e, when asked for end-to-end, browser, mobile, or agentic UI tests, to bug bash or hunt for bugs, or when an e2e run fails.
+description: Agentic end-to-end tests with e2e, the e2e runner. Covers scaffolding e2e.config.ts, picking the Playwright browser engine or the agent-device mobile engine, starting the app under test from the config, driving flows with agent.act, judging with agent.assert, agent.waitFor, and agent.extract, pinning values with screen, app, browser, and expect, shaping the agent (context, system prompt, tools, personas), the replay cache, the e2e CLI, and reading .e2e/report.json. Use when a project depends on e2e, when asked for end-to-end, browser, mobile, or agentic UI tests, or when an e2e run fails.
 ---
 
 # e2e: agentic end-to-end tests in TypeScript
@@ -57,9 +57,11 @@ test('a member upgrades to Pro', async ({ app, agent, screen, browser }) => {
 ## Topics
 
 Read the topic for the job before writing code. The files sit next to this
-one; the installed CLI prints the same text with `npx e2e guide <topic>`
-(`e2e guide` alone prints this page). For anything the topics do not cover,
-the full documentation ships in the `docs/` directory of the installed `e2e`
+one, except `mcp` and `bug-bash`, which are skills of their own (`e2e-mcp`
+and `e2e-bug-bash`), usually installed beside this one. The installed CLI
+prints any topic with `npx e2e guide <topic>` (`e2e guide` alone prints this
+page).
+For anything the topics do not cover, the full documentation ships in the `docs/` directory of the installed `e2e`
 package (`node_modules/e2e/docs` in a single-package project); a link such as
 `/reference/cli` is `docs/reference/cli.mdx`. Complete projects for Vite,
 Next.js, Astro, Expo, SwiftUI, Jetpack Compose, Kotlin Multiplatform, and
@@ -74,8 +76,8 @@ https://github.com/tester-army/e2e/tree/main/examples.
 | `running` | [references/running.md](references/running.md) | CLI flags, reporters, trace pages, `report.json` for scripts, exit codes, CI |
 | `explore` | [references/explore.md](references/explore.md) | Exploring an app toward a goal without a test file: `e2e explore`, its budgets, verdict, and `run.explore` |
 | `debugging` | [references/debugging.md](references/debugging.md) | A run failed: error codes and their fixes, `--headed`, `--debug`, `--ai-trace` |
-| `mcp` | [references/mcp.md](references/mcp.md) | Driving the live app from a coding agent over MCP: `e2e mcp`, its tools, and the explore-then-write loop |
-| `bug-bash` | [references/bug-bash.md](references/bug-bash.md) | Asked to bug bash, QA, or hunt for bugs across an app or a branch: parallel `e2e explore` charters, merging findings, proving each with a repro test |
+| `mcp` | The `e2e-mcp` skill, or `npx e2e guide mcp` | Driving the live app from a coding agent over MCP: `e2e mcp`, its tools, and the explore-then-write loop |
+| `bug-bash` | The `e2e-bug-bash` skill, or `npx e2e guide bug-bash` | Asked to bug bash, QA, or hunt for bugs across an app or a branch: parallel `e2e explore` charters, merging findings, proving each with a repro test |
 
 ## Workflow
 

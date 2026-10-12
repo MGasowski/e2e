@@ -35,20 +35,21 @@ from the skill.
 
 ## Install the skill
 
-The coding agent runs the bug bash from the [`e2e` skill](/coding-agents),
-which `e2e init` installs. To install it without `init`:
+The coding agent runs the bug bash from the `e2e-bug-bash`
+[skill](/coding-agents), which `e2e init` installs. To install it without
+`init`:
 
 <CodeGroup>
 ```bash npm
-npx skills add tester-army/e2e
+npx skills add tester-army/e2e --skill e2e-bug-bash
 ```
 
 ```bash pnpm
-pnpm dlx skills add tester-army/e2e
+pnpm dlx skills add tester-army/e2e --skill e2e-bug-bash
 ```
 
 ```bash bun
-bunx skills add tester-army/e2e
+bunx skills add tester-army/e2e --skill e2e-bug-bash
 ```
 </CodeGroup>
 

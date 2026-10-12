@@ -9,7 +9,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 const execFileAsync = promisify(execFile);
 const PACKAGE_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const CLI = path.join(PACKAGE_ROOT, 'dist', 'cli', 'bin.js');
-const REPO_SKILL = path.join(PACKAGE_ROOT, '..', '..', 'skills', 'e2e');
+const REPO_SKILLS = path.join(PACKAGE_ROOT, '..', '..', 'skills');
+const REPO_SKILL = path.join(REPO_SKILLS, 'e2e');
 let dir: string;
 
 beforeEach(() => {
@@ -26,6 +27,8 @@ describe('the built CLI and the bundled skill', () => {
     expect(overview.stdout.startsWith('# e2e')).toBe(true);
     const topic = await execFileAsync(process.execPath, [CLI, 'guide', 'writing-tests'], { cwd: dir });
     expect(topic.stdout).toBe(readFileSync(path.join(REPO_SKILL, 'references', 'writing-tests.md'), 'utf8'));
+    const sibling = await execFileAsync(process.execPath, [CLI, 'guide', 'bug-bash'], { cwd: dir });
+    expect(sibling.stdout.startsWith('# Running a bug bash')).toBe(true);
     await expect(execFileAsync(process.execPath, [CLI, 'guide', 'nope'], { cwd: dir })).rejects.toMatchObject({
       code: 2,
       stderr: expect.stringContaining('unknown topic "nope"; topics: agent, bug-bash, debugging, explore, mcp, running, setup, writing-tests'),
@@ -34,12 +37,14 @@ describe('the built CLI and the bundled skill', () => {
     expect(help.stdout).toContain('guide [topic]');
   });
 
-  it('installs the skill into both agent directories with init --yes', async () => {
+  it('installs the skills into both agent directories with init --yes', async () => {
     await execFileAsync(process.execPath, [CLI, 'init', '--yes'], { cwd: dir });
     for (const location of ['.agents/skills', '.claude/skills']) {
-      const skill = path.join(dir, location, 'e2e', 'SKILL.md');
-      expect(existsSync(skill), skill).toBe(true);
-      expect(readFileSync(skill, 'utf8')).toBe(readFileSync(path.join(REPO_SKILL, 'SKILL.md'), 'utf8'));
+      for (const name of ['e2e', 'e2e-mcp', 'e2e-bug-bash']) {
+        const skill = path.join(dir, location, name, 'SKILL.md');
+        expect(existsSync(skill), skill).toBe(true);
+        expect(readFileSync(skill, 'utf8')).toBe(readFileSync(path.join(REPO_SKILLS, name, 'SKILL.md'), 'utf8'));
+      }
       expect(existsSync(path.join(dir, location, 'e2e', 'references', 'setup.md'))).toBe(true);
     }
   });
@@ -50,6 +55,8 @@ describe('the built CLI and the bundled skill', () => {
     const packed = tarball?.files.map((file) => file.path) ?? [];
     expect(packed).toContain('skills/e2e/SKILL.md');
     expect(packed).toContain('skills/e2e/references/writing-tests.md');
+    expect(packed).toContain('skills/e2e-mcp/SKILL.md');
+    expect(packed).toContain('skills/e2e-bug-bash/SKILL.md');
     expect(packed).toContain('dist/cli/skill.js');
     expect(packed).toContain('README.md');
   });

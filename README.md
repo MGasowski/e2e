@@ -68,6 +68,24 @@ and Flutter, each a standalone project with a passing suite.
 [e2e.tester.army/docs](https://e2e.tester.army/docs). The `e2e` package ships
 every page, so coding agents can read them offline in `node_modules/e2e/docs`.
 
+## Agent skills
+
+The skills for coding agents are on
+[skills.sh](https://skills.sh/tester-army/e2e). `npx e2e init` installs the
+first three into your project:
+
+| Skill | For |
+| --- | --- |
+| `e2e` | Setting up e2e, writing and running tests, and reading a failed run. |
+| `e2e-mcp` | Using the live app from a coding agent through `e2e mcp`. |
+| `e2e-bug-bash` | Bug bashing an app and proving each bug with a repro test. |
+| `create-verification-skill` | Generating a `verify-<app>` skill for your project. Install it with `skills add`. |
+
+```bash
+npx skills add tester-army/e2e
+npx skills add tester-army/e2e --skill create-verification-skill
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). Questions go to

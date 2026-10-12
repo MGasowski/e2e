@@ -1,9 +1,9 @@
-/** The `e2e init` step that installs the bundled skill for coding agents. */
+/** The `e2e init` step that installs the bundled skills for coding agents, one directory per skill. */
 
 import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync, type Stats } from 'node:fs';
 import path from 'node:path';
 import { insideProjectRoot, realpathOfExisting } from '../../internal/paths.ts';
-import { MISSING_SKILL_MESSAGE, SKILL_NAME, type SkillFile } from '../skill.ts';
+import { BUNDLED_SKILLS, type BundledSkill, MISSING_SKILL_MESSAGE } from '../skill.ts';
 
 interface SkillLocation {
   /** Project-relative skills directory with `/` separators. */
@@ -58,6 +58,8 @@ interface SkillInstallBase {
 interface SkillCopy extends SkillInstallBase {
   readonly kind: 'copy';
   readonly files: readonly { readonly absolute: string; readonly content: string }[];
+  /** Absolute paths of the retired files the copy still holds, removed with the write. */
+  readonly retired: readonly string[];
 }
 
 /** A symlink standing in for the skill directory, leading to the copy in another location. */
@@ -70,11 +72,13 @@ interface SkillSymlink extends SkillInstallBase {
 export type SkillInstall = SkillCopy | SkillSymlink;
 
 /**
- * Known locations that hold a copy of the skill. The directory is the marker,
- * not `SKILL.md`, so a copy that lost files is repaired rather than ignored.
+ * Known locations that hold a copy of any bundled skill. The directory is the
+ * marker, not `SKILL.md`, so a copy that lost files is repaired rather than
+ * ignored, and a location an earlier init chose gets the skills added since.
  */
 export function findInstalledSkillDirs(cwd: string): string[] {
-  return SKILL_LOCATIONS.map((location) => location.dir).filter((dir) => existsSync(path.join(cwd, dir, SKILL_NAME)));
+  return SKILL_LOCATIONS.map((location) => location.dir)
+    .filter((dir) => BUNDLED_SKILLS.some((name) => existsSync(path.join(cwd, dir, name))));
 }
 
 /** The chosen directories split into the ones written as a copy and the ones linked to a copy among them. */
@@ -88,43 +92,46 @@ export function splitSkillDirs(dirs: readonly string[]): { copies: string[]; lin
 }
 
 /**
- * Plans the writes for the given directories from the bundled files. A
+ * Plans one skill's writes for the given directories from its bundled files. A
  * directory without the skill is created and one whose copy differs from the
  * bundle is rewritten; an up-to-date copy needs nothing and is left out. Files
- * the bundle does not ship are never removed. A location reached through a
+ * the bundle does not ship are never removed, except the ones the skill
+ * retired, whose presence makes a copy out of date. A location reached through a
  * symlink, or holding an entry a write cannot pass, is planned with what was
  * met and never read, for the caller to skip or replace. An empty bundle with
  * somewhere to write is a broken installation, never a set of current copies.
  */
-export function planSkillInstall(cwd: string, dirs: readonly string[], bundled: readonly SkillFile[]): SkillInstall[] {
-  if (dirs.length > 0 && bundled.length === 0) throw new Error(MISSING_SKILL_MESSAGE);
+export function planSkillInstall(cwd: string, dirs: readonly string[], skill: BundledSkill): SkillInstall[] {
+  if (dirs.length > 0 && skill.files.length === 0) throw new Error(MISSING_SKILL_MESSAGE);
   const installs: SkillInstall[] = [];
   for (const dir of dirs) {
-    const root = path.join(cwd, dir, SKILL_NAME);
-    const files = bundled.map((file) => ({ absolute: path.join(root, file.relative), content: file.content }));
-    const { links, obstacles } = findBlockers(cwd, root, files.map((file) => file.absolute));
-    const current = links.length === 0 && obstacles.length === 0
+    const root = path.join(cwd, dir, skill.name);
+    const files = skill.files.map((file) => ({ absolute: path.join(root, file.relative), content: file.content }));
+    const retired = skill.retired.map((relative) => path.join(root, relative))
+      .filter((absolute) => lstatOrUndefined(absolute)?.isFile() === true);
+    const { links, obstacles } = findBlockers(cwd, root, [...files.map((file) => file.absolute), ...retired]);
+    const current = links.length === 0 && obstacles.length === 0 && retired.length === 0
       && files.every((file) => currentContent(file.absolute) === file.content);
     if (current) continue;
-    installs.push({ kind: 'copy', relative: `${dir}/${SKILL_NAME}`, existing: existsSync(root), files, links, obstacles });
+    installs.push({ kind: 'copy', relative: `${dir}/${skill.name}`, existing: existsSync(root), files, retired, links, obstacles });
   }
   return installs;
 }
 
 /**
- * Whether a directory holds the copy once the planned writes are done: its
- * plan goes ahead, or nothing was planned because the copy is current.
+ * Whether a skill directory (`.agents/skills/e2e`) holds the copy once the
+ * planned writes are done: its plan goes ahead, or nothing was planned
+ * because the copy is current.
  */
-export function holdsCopyAfter(dir: string, planned: readonly SkillInstall[], going: readonly SkillInstall[]): boolean {
-  const relative = `${dir}/${SKILL_NAME}`;
+export function holdsCopyAfter(relative: string, planned: readonly SkillInstall[], going: readonly SkillInstall[]): boolean {
   return going.some((install) => install.relative === relative) || !planned.some((install) => install.relative === relative);
 }
 
 /**
- * Plans `dir` as a symlink to the copy in `canonicalDir`, which `ready` says
+ * Plans the skill in `dir` as a symlink to its copy in `canonicalDir`, which `ready` says
  * this run leaves in place. Nothing is planned for an entry that already
  * leads there, the link itself or a linked parent. A copy holding only
- * bundled files is replaced by the link, since the copy it leads to has the
+ * bundled or retired files is replaced by the link, since the copy it leads to has the
  * same content; one holding anything else, like a location whose copy is not
  * ready, is planned as a copy like any other. A symlink leading elsewhere,
  * or one on the way, is planned with what was met, for the caller to skip or
@@ -134,21 +141,21 @@ export function planSkillLink(
   cwd: string,
   dir: string,
   canonicalDir: string,
-  bundled: readonly SkillFile[],
+  skill: BundledSkill,
   ready: boolean,
 ): SkillInstall | undefined {
-  const link = path.join(cwd, dir, SKILL_NAME);
-  const canonical = path.join(cwd, canonicalDir, SKILL_NAME);
+  const link = path.join(cwd, dir, skill.name);
+  const canonical = path.join(cwd, canonicalDir, skill.name);
   if (ready && leadsTo(link, canonical)) return undefined;
   const entry = lstatOrUndefined(link);
-  const linkable = entry === undefined || entry.isSymbolicLink() || (entry.isDirectory() && holdsOnlyBundled(link, bundled));
-  if (!ready || !linkable) return planSkillInstall(cwd, [dir], bundled)[0];
+  const linkable = entry === undefined || entry.isSymbolicLink() || (entry.isDirectory() && holdsOnlyBundled(link, skill));
+  if (!ready || !linkable) return planSkillInstall(cwd, [dir], skill)[0];
   const blocker = firstBlocker(cwd, path.dirname(link), 'directory')
     ?? (entry?.isSymbolicLink() ? { kind: 'link' as const, absolute: link } : undefined);
   const found = describeBlocker(cwd, link, link, blocker);
   return {
     kind: 'link',
-    relative: `${dir}/${SKILL_NAME}`,
+    relative: `${dir}/${skill.name}`,
     existing: entry?.isDirectory() === true,
     target: posixRelative(path.dirname(link), canonical),
     links: found !== undefined && 'link' in found ? [found.link] : [],
@@ -201,12 +208,12 @@ function leadsTo(link: string, canonical: string): boolean {
 }
 
 /**
- * Whether the directory holds nothing but regular files the bundle ships, so a
- * link to another copy loses nothing. A symlink inside is a link to respect
- * under the copy rules, never a file to drop.
+ * Whether the directory holds nothing but regular files the skill ships or
+ * retired, so a link to another copy loses nothing. A symlink inside is a link
+ * to respect under the copy rules, never a file to drop.
  */
-function holdsOnlyBundled(root: string, bundled: readonly SkillFile[]): boolean {
-  const shipped = bundled.map((file) => file.relative);
+function holdsOnlyBundled(root: string, skill: BundledSkill): boolean {
+  const shipped = [...skill.files.map((file) => file.relative), ...skill.retired];
   return readdirSync(root, { recursive: true, withFileTypes: true }).every((entry) => {
     const relative = posixRelative(root, path.join(entry.parentPath, entry.name));
     return entry.isDirectory() ? shipped.some((file) => file.startsWith(`${relative}/`)) : entry.isFile() && shipped.includes(relative);

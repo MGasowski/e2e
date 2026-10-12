@@ -1,9 +1,18 @@
+---
+name: e2e-bug-bash
+description: Bug bash a web or mobile app with e2e. Plan five to ten charters, fan out parallel e2e explore runs, merge and triage what the explorers report, and prove each bug with a repro test that fails for the reason reported. Use when asked to bug bash, QA, hunt for bugs, or do exploratory testing across an app, a feature, or a branch before release.
+---
+
 # Running a bug bash
 
 A bug bash is many `e2e explore` runs at once, one charter each, then a
 verification pass that turns every claimed bug into a repro test that fails
 for the reason reported. Plan the charters, fan them out, merge the findings,
 prove each bug. Report confirmed bugs only, each with its failing test.
+
+This skill builds on the `e2e` skill. A topic named here is a file in that
+skill's `references/`, and `npx e2e guide <topic>` prints it from the
+installed package; topic `mcp` is the `e2e-mcp` skill.
 
 ## 1. Prepare
 

@@ -1,14 +1,14 @@
 ---
 title: Coding agents
-description: Give a coding agent the skill, a live app session, and reports it can use to write and debug tests.
+description: Give a coding agent the skills, a live app session, and reports it can use to write and debug tests.
 icon: "robot"
 ---
 
 A coding agent such as Claude Code, Codex, or Cursor can write, run, and
-debug e2e tests. It learns e2e from the skill, uses the app through the
+debug e2e tests. It learns e2e from the skills, uses the app through the
 `e2e mcp` server, and reads the trace page of a failed test.
 
-## Install the skill
+## Install the skills
 
 <CodeGroup>
 ```bash npm
@@ -24,15 +24,40 @@ bunx e2e init
 ```
 </CodeGroup>
 
-| Path | Used by |
-| --- | --- |
-| `.agents/skills/e2e/` | Agents that read `.agents/skills` |
-| `.claude/skills/e2e/` | Claude Code. A symlink to `.agents/skills/e2e/` when both are installed. |
+`init` installs three skills in `.agents/skills/`. Claude Code reads
+`.claude/skills/`; with both chosen, each skill there links to the
+`.agents/skills/` copy.
 
-The copy holds `SKILL.md` and topic references. After you upgrade e2e, run
-`init` again to update it. Without `init`, `npx skills add tester-army/e2e`
-installs the skill, and `npx e2e guide [topic]` prints it from the
-installed package.
+| Skill | Teaches |
+| --- | --- |
+| `e2e` | Setting up e2e, writing and running tests, agent steps, explore, and reading a failed run |
+| `e2e-mcp` | Using the live app through `e2e mcp`: look at a screen, check a locator, record a video |
+| `e2e-bug-bash` | Running a [bug bash](/bug-bash) and proving each bug with a repro test |
+
+After you upgrade e2e, run `init` again to update the skills.
+
+<Accordion title="Install from skills.sh without init">
+[skills.sh](https://skills.sh/tester-army/e2e) lists the same skills.
+Without `--skill`, `skills add` asks which ones to install.
+
+<CodeGroup>
+```bash npm
+npx skills add tester-army/e2e --skill e2e-mcp
+```
+
+```bash pnpm
+pnpm dlx skills add tester-army/e2e --skill e2e-mcp
+```
+
+```bash bun
+bunx skills add tester-army/e2e --skill e2e-mcp
+```
+</CodeGroup>
+
+`skills add` installs from the main branch, which can be ahead of your
+installed version. `npx e2e guide [topic]` prints the text that matches
+your version.
+</Accordion>
 
 `init` leaves your project instructions unchanged. For agents that need a
 pointer, add this line:
@@ -47,7 +72,8 @@ The package also ships these docs as `.mdx` pages for offline reading, in
 
 ## Let the agent use the app
 
-`e2e mcp` lets the coding agent open the app and use it. Each agent,
+`e2e mcp` lets the coding agent open the app and use it; the `e2e-mcp`
+skill teaches it how. Each agent,
 subagents included, opens its own session, so several can use the app at
 the same time. The `locate` tool checks a `screen.*` locator against the
 current app and returns the test code when exactly one element matches.

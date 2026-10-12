@@ -18,8 +18,9 @@ The e2e skill is the reference for everything e2e does. Read it first and
 link to it rather than restate it. It is `.agents/skills/e2e/SKILL.md` in
 the project once `npx e2e init` or `npx skills add tester-army/e2e` ran,
 and `npx e2e guide <topic>` prints it from the installed package. Topics
-named below (`setup`, `writing-tests`, `mcp`, `explore`, `bug-bash`,
-`running`, `debugging`) are its reference files.
+named below (`setup`, `writing-tests`, `explore`, `running`, `debugging`)
+are its reference files; topics `mcp` and `bug-bash` are the `e2e-mcp` and
+`e2e-bug-bash` skills installed beside it.
 
 ## 1. Interview the repo, not the user
 

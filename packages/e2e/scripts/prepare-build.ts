@@ -2,8 +2,9 @@
  * Clears the previous build and copies in the files the package ships from
  * the repository root.
  *
- * `skills/e2e` ships as the package's agent skill, and the docs pages as
- * `docs/`, so coding agents read them offline from the installed package.
+ * The bundled skills (`BUNDLED_SKILLS`) ship as the package's agent skills,
+ * and the docs pages as `docs/`, so coding agents read them offline from the
+ * installed package.
  * Only the `.mdx` pages ship: each carries its own copy of every
  * `docs/examples` file it shows (`check-docs-examples.ts`), and the site
  * assets mean nothing outside Mintlify. The root README ships as
@@ -15,9 +16,10 @@
  */
 
 import { cpSync, globSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { BUNDLED_SKILLS } from '../src/cli/skill.ts';
 
 for (const dir of ['dist', 'skills', 'docs']) rmSync(dir, { recursive: true, force: true });
-cpSync('../../skills/e2e', 'skills/e2e', { recursive: true });
+for (const name of BUNDLED_SKILLS) cpSync(`../../skills/${name}`, `skills/${name}`, { recursive: true });
 for (const page of globSync('**/*.mdx', { cwd: '../../docs', exclude: ['node_modules/**'] })) {
   cpSync(`../../docs/${page}`, `docs/${page}`);
 }

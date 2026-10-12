@@ -1,9 +1,19 @@
+---
+name: e2e-mcp
+description: Drive a project's running web or mobile app from a coding agent through the e2e MCP server (e2e mcp). Open a live browser or simulator session, observe the screen as a semantic tree, tap, type, and navigate, take screenshots, record a video for a pull request, and check a locator before writing it into a test. Use to look at the app, check a UI change the way a user sees it, reproduce a bug by hand, or learn a screen's exact labels before writing an e2e test.
+---
+
 # Driving the app over MCP
 
 `e2e mcp` serves a project's live app to a coding agent over MCP (stdio). The
 coding agent drives the app the way the testing agent does: look at a screen
 before writing a test, check a locator before committing to it. Running tests
 and reading a failed run stay on the CLI (topics `running` and `debugging`).
+
+This skill builds on the `e2e` skill. A topic named here is a file in that
+skill's `references/`, and `npx e2e guide <topic>` prints it from the
+installed package. The project needs `e2e` and an `e2e.config.ts` with a
+target; without them, follow topic `setup` (`npx e2e init` scaffolds both).
 
 ## Setup
 
@@ -68,7 +78,8 @@ Once a secret is filled in the session, `screenshot` and the point tools
 `writing-tests`). Before the session's first `screenshot`, a point tool only
 says to take one.
 
-Resources: `e2e://guide` and `e2e://guide/<topic>` hold this skill.
+Resources: `e2e://guide` holds the `e2e` skill and `e2e://guide/<topic>` each
+topic, `e2e://guide/mcp` this one.
 
 ## Workflow
 

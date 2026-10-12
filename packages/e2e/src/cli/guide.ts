@@ -1,4 +1,4 @@
-/** `e2e guide`: prints the bundled agent skill for agents and people who do not have it installed. */
+/** `e2e guide`: prints the bundled agent skills for agents and people who do not have them installed. */
 
 import { MISSING_SKILL_MESSAGE, readGuide, skillTopics } from './skill.ts';
 

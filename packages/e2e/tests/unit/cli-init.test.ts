@@ -19,7 +19,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { init } from '../../src/cli/init.ts';
 import { planSkillInstall } from '../../src/cli/init/agent-skill.ts';
 import { dependencyRange } from '../../src/cli/init/versions.ts';
-import { readSkillFiles } from '../../src/cli/skill.ts';
+import { readBundledSkills } from '../../src/cli/skill.ts';
 
 vi.mock('@clack/prompts', { spy: true });
 vi.mock('../../src/cli/skill.ts', { spy: true });
@@ -52,13 +52,32 @@ function read(file: string): string {
   return readFileSync(path.join(dir, file), 'utf8');
 }
 
-/** Writes the bundled skill into `<location>/e2e` as an earlier init left it, every file holding `content` when given. */
+/** Writes every bundled skill into `<location>/<name>` as an earlier init left it, every file holding `content` when given. */
 function writeCopy(location: string, content?: string): void {
-  for (const file of readSkillFiles()) {
+  for (const skill of readBundledSkills()) {
+    for (const file of skill.files) {
+      const absolute = path.join(dir, location, skill.name, file.relative);
+      mkdirSync(path.dirname(absolute), { recursive: true });
+      writeFileSync(absolute, content ?? file.content);
+    }
+  }
+}
+
+/** Writes the `e2e` skill into `<location>/e2e` as an init from before the split left it: today's files plus the retired ones. */
+function writePreSplitCopy(location: string): void {
+  const skill = bundledE2eSkill();
+  for (const file of [...skill.files, ...skill.retired.map((relative) => ({ relative, content: '# moved since\n' }))]) {
     const absolute = path.join(dir, location, 'e2e', file.relative);
     mkdirSync(path.dirname(absolute), { recursive: true });
-    writeFileSync(absolute, content ?? file.content);
+    writeFileSync(absolute, file.content);
   }
+}
+
+/** The `e2e` skill as the package bundles it. */
+function bundledE2eSkill(): ReturnType<typeof readBundledSkills>[number] {
+  const skill = readBundledSkills().find((bundled) => bundled.name === 'e2e');
+  if (skill === undefined) throw new Error('the package bundles no e2e skill');
+  return skill;
 }
 
 /** A completed `spawnSync` result with the given exit status. */
@@ -550,6 +569,25 @@ describe('e2e init', () => {
     expect(output()).toContain('Updated .agents/skills/e2e/');
   });
 
+  it('upgrades a copy from before the split: adds the new skills and removes the moved references', async () => {
+    writePreSplitCopy('.agents/skills');
+    await init(dir, { yes: true });
+    expect(read('.agents/skills/e2e-mcp/SKILL.md')).toMatch(/^---\nname: e2e-mcp\n/);
+    expect(read('.agents/skills/e2e-bug-bash/SKILL.md')).toMatch(/^---\nname: e2e-bug-bash\n/);
+    for (const retired of bundledE2eSkill().retired) expect(existsSync(path.join(dir, '.agents/skills/e2e', retired)), retired).toBe(false);
+    expect(output()).toContain('Updated .agents/skills/e2e/ (7 files, removed 2 no longer shipped)');
+    expect(existsSync(path.join(dir, '.claude'))).toBe(false);
+  });
+
+  it.skipIf(!symlinks)('replaces a .claude/skills copy from before the split with the link', async () => {
+    writePreSplitCopy('.agents/skills');
+    writePreSplitCopy('.claude/skills');
+    await init(dir, { yes: true });
+    expect(readlinkSync(path.join(dir, '.claude/skills/e2e'))).toBe('../../.agents/skills/e2e');
+    expect(readlinkSync(path.join(dir, '.claude/skills/e2e-mcp'))).toBe('../../.agents/skills/e2e-mcp');
+    expect(output()).toContain('Linked .claude/skills/e2e -> ../../.agents/skills/e2e (replaced the copy)');
+  });
+
   it.skipIf(!symlinks)('links .claude/skills/e2e to the copy in .agents/skills when both are chosen, and a second run has nothing to do', async () => {
     vi.mocked(clack.confirm).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
     expect((await init(dir)).exitCode).toBe(0);
@@ -578,7 +616,7 @@ describe('e2e init', () => {
     vi.mocked(clack.confirm).mockResolvedValueOnce(true).mockResolvedValueOnce(false);
     expect((await init(dir)).exitCode).toBe(0);
     // Both directories hold the skill, so the locations are not asked again.
-    expect(clack.multiselect).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'Install the e2e skill for coding agents?' }));
+    expect(clack.multiselect).not.toHaveBeenCalledWith(expect.objectContaining({ message: 'Install the e2e skills for coding agents?' }));
     expect(output()).toContain('  - Link .claude/skills/e2e -> ../../.agents/skills/e2e (replacing the copy)\n');
     expect(clack.confirm).toHaveBeenNthCalledWith(1, expect.objectContaining({ message: 'Apply these changes?' }));
     const link = path.join(dir, '.claude/skills/e2e');
@@ -598,7 +636,7 @@ describe('e2e init', () => {
     expect(read('.claude/skills/e2e/notes.md')).toBe('mine\n');
     expect(read('.claude/skills/e2e/SKILL.md')).toMatch(/^---\nname: e2e\n/);
     expect(output()).toContain('Updated .claude/skills/e2e/');
-    expect(output()).not.toContain('Linked');
+    expect(output()).not.toContain('Linked .claude/skills/e2e -> ');
   });
 
   it.skipIf(!symlinks)('keeps an earlier copy in .claude/skills whose SKILL.md is a symlink, and leaves that link alone', async () => {
@@ -611,7 +649,7 @@ describe('e2e init', () => {
     symlinkSync(path.join('..', '..', '..', 'mine.md'), linked);
     expect((await init(dir, { yes: true })).exitCode).toBe(0);
     expect(output()).toContain(`Symlink, not touching: .claude/skills/e2e/ (.claude/skills/e2e/SKILL.md -> ${realpathSync(mine)})`);
-    expect(output()).not.toContain('Linked');
+    expect(output()).not.toContain('Linked .claude/skills/e2e -> ');
     expect(lstatSync(path.join(dir, '.claude/skills/e2e')).isDirectory()).toBe(true);
     expect(lstatSync(linked).isSymbolicLink()).toBe(true);
     expect(read('mine.md')).toBe('mine\n');
@@ -623,7 +661,7 @@ describe('e2e init', () => {
     symlinkSync(path.join('..', '.agents', 'skills'), path.join(dir, '.claude/skills'), 'dir');
     expect((await init(dir, { yes: true })).exitCode).toBe(0);
     expect(read('.agents/skills/e2e/SKILL.md')).toMatch(/^---\nname: e2e\n/);
-    expect(readdirSync(path.join(dir, '.agents/skills'))).toEqual(['e2e']);
+    expect(readdirSync(path.join(dir, '.agents/skills')).toSorted()).toEqual(['e2e', 'e2e-bug-bash', 'e2e-mcp']);
     expect(lstatSync(path.join(dir, '.agents/skills/e2e')).isDirectory()).toBe(true);
     expect(lstatSync(path.join(dir, '.claude/skills')).isSymbolicLink()).toBe(true);
     expect(output()).toContain('Created .agents/skills/e2e/');
@@ -632,7 +670,7 @@ describe('e2e init', () => {
   });
 
   it('fails before any prompt or write when the package lacks its skill files', async () => {
-    vi.mocked(readSkillFiles).mockReturnValueOnce([]);
+    vi.mocked(readBundledSkills).mockReturnValueOnce([]);
     expect((await init(dir)).exitCode).toBe(2);
     expect(readdirSync(dir)).toEqual([]);
     expect(clack.select).not.toHaveBeenCalled();
@@ -692,8 +730,9 @@ describe('e2e init', () => {
     const elsewhere = mkdtempSync(path.join(os.tmpdir(), 'e2e-init-elsewhere-'));
     try {
       const location = path.relative(dir, path.join(elsewhere, 'skills')).split(path.sep).join('/');
-      const bundled = readSkillFiles();
-      const installs = planSkillInstall(dir, [location], bundled);
+      const skill = bundledE2eSkill();
+      const bundled = skill.files;
+      const installs = planSkillInstall(dir, [location], skill);
       expect(installs).toHaveLength(1);
       expect(installs[0]!.relative).toBe(`${location}/e2e`);
       expect(installs[0]!.existing).toBe(false);
@@ -852,7 +891,7 @@ describe('e2e init', () => {
         writeCopy('.agents/skills');
         expect((await init(dir, { yes: true })).exitCode).toBe(0);
         expect(output()).toContain(`Symlink, not touching: .claude/skills/e2e -> ${realpathSync(target)}`);
-        expect(output()).not.toContain('Linked');
+        expect(output()).not.toContain('Linked .claude/skills/e2e -> ');
         expect(lstatSync(path.join(dir, '.claude/skills/e2e')).isSymbolicLink()).toBe(true);
         untouched(target);
         expect(clack.confirm).not.toHaveBeenCalled();
@@ -872,7 +911,7 @@ describe('e2e init', () => {
         expect(lstatSync(path.join(dir, '.claude/skills/e2e')).isDirectory()).toBe(true);
         expect(read('.claude/skills/e2e/SKILL.md')).toMatch(/^---\nname: e2e\n/);
         expect(output()).toContain('Updated .claude/skills/e2e/');
-        expect(output()).not.toContain('Linked');
+        expect(output()).not.toContain('Linked .claude/skills/e2e -> ');
         untouched(target);
       } finally {
         rmSync(elsewhere, { recursive: true, force: true });

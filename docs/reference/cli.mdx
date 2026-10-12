@@ -101,11 +101,13 @@ For a new project, the wizard asks you to choose:
   OpenCode Console, or SuperGrok. Choose None for tests that only use
   locators. The wizard adds the required packages and model config. Subscription users then sign in
   with `e2e login`. See [Models](/models) and [Subscriptions](/subscriptions).
-- Where to install the agent skill (see [e2e guide](#e2e-guide)):
-  `.agents/skills/` for Codex, Cursor, Copilot, Gemini CLI, OpenCode, and
-  Zed, and `.claude/skills/` for Claude Code. Both are preselected; with
-  both, `.claude/skills/e2e` is a symlink to `.agents/skills/e2e`, the
-  layout `npx skills add` produces.
+- Where to install the agent skills `e2e`, `e2e-mcp`, and `e2e-bug-bash`
+  (see [e2e guide](#e2e-guide)): `.agents/skills/` for Codex, Cursor,
+  Copilot, Gemini CLI, OpenCode, and Zed, and `.claude/skills/` for Claude
+  Code. Both are preselected; with both, each `.claude/skills/<skill>` is a
+  symlink to `.agents/skills/<skill>`, the layout `npx skills add`
+  produces. A later run adds a skill the package gained to the locations
+  chosen before.
 - Where to register the [MCP server](/reference/mcp): `.mcp.json` for
   Claude Code and `.cursor/mcp.json` for Cursor. Both are preselected.
 
@@ -116,7 +118,7 @@ lockfile, then the invoking package manager, then npm.
 | Argument or flag | Type | Default | Behavior |
 | --- | --- | --- | --- |
 | `[directory]` | path | the working directory | Where to scaffold; created when missing |
-| `-y`, `--yes` | boolean | `false` | Uses the Web engine and Vercel AI Gateway, installs the skill and MCP config in both locations, and skips dependency installation |
+| `-y`, `--yes` | boolean | `false` | Uses the Web engine and Vercel AI Gateway, installs the skills and MCP config in both locations, and skips dependency installation |
 
 | Creates | Content |
 | --- | --- |
@@ -124,7 +126,7 @@ lockfile, then the invoking package manager, then npm.
 | `e2e.config.ts` | One target for the selected engine, with the app in its `app`. Playwright reads `APP_URL` (default `http://localhost:3000`) into `app.url` and shows `app.command` in a comment. Mobile sets `app: { bundleId: 'Settings' }` on iOS and `com.android.settings` on Android. With a gateway, `agents.default` is `{ model, system }` |
 | `tests/example.e2e.ts` | An app-open test that passes against any page, plus a commented agent test. Device setup gets a Settings check instead |
 | `.gitignore` | Appends `node_modules/`, `.e2e/results/`, `.e2e/cache/`, `.e2e/sessions/`, `.e2e/report.json`, `.e2e/ai-trace.json`, `.e2e/junit.xml`, `.e2e/summary.md`, `.e2e/logs/`, and `.e2e/videos/`. Committing the cache is opt-in; see [commit the replay cache](/cache#commit-the-replay-cache) |
-| `.agents/skills/e2e/`, `.claude/skills/e2e/` | `SKILL.md` and one `references/<topic>.md` per `e2e guide` topic. With both chosen, the Claude Code directory is a relative symlink (`../../.agents/skills/e2e`) to the copy |
+| `.agents/skills/<skill>/`, `.claude/skills/<skill>/` | One directory per skill: `e2e` holds `SKILL.md` and a `references/<topic>.md` for each `e2e guide` topic except `mcp` and `bug-bash`, which are the `SKILL.md` of `e2e-mcp` and `e2e-bug-bash`. With both chosen, each Claude Code directory is a relative symlink (`../../.agents/skills/<skill>`) to the copy |
 | `.mcp.json`, `.cursor/mcp.json` | Registers `e2e mcp` without changing other servers |
 
 <CodeGroup>
@@ -146,10 +148,12 @@ registration keeps extra settings on the e2e server, such as environment
 variables and client timeouts, even when repairing its launch command. A
 current registration is left byte-for-byte unchanged. Once
 a skill directory exists, later runs refresh copies that differ from the
-installed version and never add a directory the project did not choose. A
-`.claude/skills/e2e/` copy from an earlier version becomes the symlink when
-it holds nothing but the shipped files; one with other files in it stays a
-copy and is refreshed. A skill directory that is a symlink elsewhere, or sits
+installed version, remove the files an earlier version shipped and this one
+does not (the old `references/mcp.md` and `references/bug-bash.md`), and
+never add a directory the project did not choose. A
+`.claude/skills/<skill>/` copy from an earlier version becomes the symlink when
+it holds nothing but the shipped or removed files; one with other files in it
+stays a copy and is refreshed. A skill directory that is a symlink elsewhere, or sits
 under one, is never written through: `--yes` skips it with a warning naming
 the link and its target, and an interactive run offers to replace a linked
 skill directory with a copy, or with the link where the link goes. A
@@ -278,11 +282,13 @@ bunx e2e guide setup      # one topic
 ```
 </CodeGroup>
 
-Prints the skill that `init` installs. `guide` alone prints the overview;
+Prints the skills that `init` installs. `guide` alone prints the overview;
 `guide <topic>` prints one of `setup`, `writing-tests`, `agent`, `running`,
-`explore`, `debugging`, `mcp`, or `bug-bash`. An unknown topic exits 2 and names the
-valid ones. The same skill installs with `npx skills add tester-army/e2e`.
-See [Coding agents](/coding-agents).
+`explore`, `debugging`, `mcp`, or `bug-bash`. `mcp` and `bug-bash` are the
+`e2e-mcp` and `e2e-bug-bash` skills; the rest are topics of the `e2e`
+skill. An unknown topic exits 2 and names the valid ones. The same skills
+install with `npx skills add tester-army/e2e`. See
+[Coding agents](/coding-agents).
 
 ## e2e mcp
 

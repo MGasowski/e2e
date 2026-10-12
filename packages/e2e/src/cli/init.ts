@@ -25,7 +25,7 @@ import { GATEWAYS, getGatewayPreset, type GatewayId } from './init/gateways.ts';
 import { findRegisteredMcpFiles, MCP_LOCATIONS, planMcpRegistration } from './init/mcp-config.ts';
 import { addDependencies, addScripts, describeManifestError, readPackage, serializePackage } from './init/package.ts';
 import { createScaffold, type ScaffoldModel } from './init/scaffold.ts';
-import { MISSING_SKILL_MESSAGE, readSkillFiles } from './skill.ts';
+import { MISSING_SKILL_MESSAGE, readBundledSkills } from './skill.ts';
 import { playWordmark } from './wordmark.ts';
 import type { InitOutcome, InitResult } from '../telemetry/events.ts';
 
@@ -70,9 +70,9 @@ type GatewayChoice = GatewayId | 'none';
 /**
  * Runs `e2e init`. Every prompt happens before the first write, existing
  * config and test files are never touched, and dependencies install only when
- * the user asks. The agent skill is offered once; later runs refresh the
- * copies that exist, never add new locations, and never write through a
- * symlink.
+ * the user asks. The agent skills are offered once; later runs refresh the
+ * copies that exist, add skills the package gained to the locations chosen
+ * before, never add new locations, and never write through a symlink.
  */
 export async function init(cwd: string, options: InitOptions = {}): Promise<InitOutcome & { readonly exitCode: number }> {
   // The wordmark drops in above the wizard, at rest when --yes asked for no questions; a terminal is the one place it shows.
@@ -113,8 +113,8 @@ export async function init(cwd: string, options: InitOptions = {}): Promise<Init
     clack.log.error(`${path.join(cwd, 'package.json')} could not be read: ${describeManifestError(cause)}; fix it before running e2e init`);
     return done('invalid-project', 2);
   }
-  const bundledSkill = readSkillFiles();
-  if (bundledSkill.length === 0) {
+  const bundledSkills = readBundledSkills();
+  if (bundledSkills.length === 0) {
     clack.log.error(MISSING_SKILL_MESSAGE);
     return done('invalid-project', 2);
   }
@@ -176,25 +176,28 @@ export async function init(cwd: string, options: InitOptions = {}): Promise<Init
   const skillDirs = await chooseLocations(
     findInstalledSkillDirs(cwd),
     SKILL_LOCATIONS.map(({ dir, hint }) => ({ value: dir, hint })),
-    'Install the e2e skill for coding agents?',
+    'Install the e2e skills for coding agents?',
     options.yes,
   );
   if (isCancelled(skillDirs)) return cancel();
   facts.skill = skillDirs.length > 0;
   const { copies, links } = splitSkillDirs(skillDirs);
-  const plannedCopies = planSkillInstall(cwd, copies, bundledSkill);
+  const plannedCopies = bundledSkills.flatMap((skill) => planSkillInstall(cwd, copies, skill));
   const skillInstalls: SkillInstall[] = [];
   for (const planned of plannedCopies) {
     const proceed = await confirmSkillInstall(planned, options.yes);
     if (isCancelled(proceed)) return cancel();
     if (proceed) skillInstalls.push(planned);
   }
-  for (const { dir, linksTo } of links) {
-    const planned = planSkillLink(cwd, dir, linksTo, bundledSkill, holdsCopyAfter(linksTo, plannedCopies, skillInstalls));
-    if (planned === undefined) continue;
-    const proceed = await confirmSkillInstall(planned, options.yes);
-    if (isCancelled(proceed)) return cancel();
-    if (proceed) skillInstalls.push(planned);
+  for (const skill of bundledSkills) {
+    for (const { dir, linksTo } of links) {
+      const ready = holdsCopyAfter(`${linksTo}/${skill.name}`, plannedCopies, skillInstalls);
+      const planned = planSkillLink(cwd, dir, linksTo, skill, ready);
+      if (planned === undefined) continue;
+      const proceed = await confirmSkillInstall(planned, options.yes);
+      if (isCancelled(proceed)) return cancel();
+      if (proceed) skillInstalls.push(planned);
+    }
   }
 
   const mcpFiles = await chooseLocations(
@@ -286,11 +289,13 @@ export async function init(cwd: string, options: InitOptions = {}): Promise<Init
       mkdirSync(path.dirname(file.absolute), { recursive: true });
       writeFileSync(file.absolute, file.content, 'utf8');
     }
+    for (const retired of skill.retired) unlinkSync(retired);
     const verb = skill.links.length > 0 ? 'Replaced' : skill.existing ? 'Updated' : 'Created';
-    clack.log.success(`${verb} ${skill.relative}/ (${skill.files.length} files)`);
+    const removed = skill.retired.length > 0 ? `, removed ${skill.retired.length} no longer shipped` : '';
+    clack.log.success(`${verb} ${skill.relative}/ (${skill.files.length} files${removed})`);
   }
   if (skillDirs.length === 0) {
-    clack.log.info(`Skipped the agent skill; agents can still print it with ${execCommand(manager, 'e2e guide')}`);
+    clack.log.info(`Skipped the agent skills; agents can still print them with ${execCommand(manager, 'e2e guide')}`);
   }
   for (const registration of mcpRegistrations) {
     mkdirSync(path.dirname(registration.absolute), { recursive: true });

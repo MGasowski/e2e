@@ -416,9 +416,9 @@ function createProgram(version: string, telemetry: Telemetry): Command {
 
   program
     .command('init')
-    .summary('scaffold an ESM package, e2e.config.ts, an example test, .gitignore entries, and the agent skill')
+    .summary('scaffold an ESM package, e2e.config.ts, an example test, .gitignore entries, and the agent skills')
     .description(
-      'Scaffold a project without touching existing files: an ESM package.json, e2e.config.ts, tests/example.e2e.ts, .gitignore entries, and the e2e skill for coding agents. Prompts for the engine, for AI support, and for the skill directories, then offers to install the dependencies; --yes takes the defaults, with the skill in .agents/skills and .claude/skills linked to it.',
+      'Scaffold a project without touching existing files: an ESM package.json, e2e.config.ts, tests/example.e2e.ts, .gitignore entries, and the e2e skills for coding agents (e2e, e2e-mcp, e2e-bug-bash). Prompts for the engine, for AI support, and for the skill directories, then offers to install the dependencies; --yes takes the defaults, with the skills in .agents/skills and .claude/skills linked to them.',
     )
     .argument('[directory]', 'project directory, created when missing (default: the current directory)')
     .option('-y, --yes', 'skip the prompts: Playwright, AI on, no installation')
@@ -482,7 +482,7 @@ function createProgram(version: string, telemetry: Telemetry): Command {
     .command('guide')
     .summary('print the e2e skill for coding agents')
     .description(
-      'Print the skill that init installs: how to set up e2e, write tests, use agent steps, run the CLI, and read a failing run. Without a topic, prints the overview and the topic list.',
+      'Print the skills that init installs: how to set up e2e, write tests, use agent steps, run the CLI, read a failing run, drive the app over MCP, and run a bug bash. Without a topic, prints the overview and the topic list.',
     )
     .argument('[topic]', `one of ${skillTopics().join(', ')}`)
     .addHelpText('after', ['', examples(['e2e guide', 'e2e guide writing-tests']), '', docsLine('/reference/cli#e2e-guide')].join('\n'))

@@ -164,13 +164,18 @@ suites that consume the built packages the way a user would.
   pages to `packages/e2e/docs/` (gitignored,
   `packages/e2e/scripts/prepare-build.ts`) so the published package ships
   them for agents to read offline.
-- `skills/e2e/` — the agent skill for consumers: `SKILL.md` plus
-  `references/<topic>.md`, one per `e2e guide` topic. It lives at the repo
-  root because `npx skills add tester-army/e2e` only looks in well-known
-  directories. The `e2e` build copies it to `packages/e2e/skills/`
-  (gitignored) so the published package ships it; `src/cli/skill.ts` reads
-  that copy first and the repo source as the fallback, and `e2e init` writes
-  it into a project's `.agents/skills/` and `.claude/skills/`.
+- `skills/e2e/`, `skills/e2e-mcp/`, `skills/e2e-bug-bash/` — the agent
+  skills for consumers, listed on skills.sh (`skills.sh/tester-army/e2e`).
+  `e2e` is `SKILL.md` plus `references/<topic>.md`, one per `e2e guide`
+  topic; each `e2e-<topic>` sibling is one job big enough to install alone
+  and is served as `e2e guide <topic>`. A sibling refers to the others by
+  topic, never by relative path, since `npx skills add --skill` can install
+  it alone. They live at the repo root because `npx skills add
+  tester-army/e2e` only looks in well-known directories. The `e2e` build
+  copies `BUNDLED_SKILLS` (`src/cli/skill.ts`) to `packages/e2e/skills/`
+  (gitignored) so the published package ships them; `src/cli/skill.ts`
+  reads that copy first and the repo source as the fallback, and `e2e init`
+  writes each into a project's `.agents/skills/` and `.claude/skills/`.
 - `skills/create-verification-skill/`: a generator skill for consumers;
   it writes a project-local `verify-<app>` skill and feature map on top of
   e2e, with the bug bash wired to the map. Installed with `npx skills add
