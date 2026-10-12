@@ -9,6 +9,7 @@
 import { createRequire } from 'node:module';
 import { createAgentDeviceClient } from 'agent-device';
 import { ConfigurationError, defineEngine, obj, type EngineAppCheckInfo, type EngineAppDeclaration, type EngineHandle } from 'e2e/engine';
+import { assertArgentInstalled, createArgentDeviceClient } from './argent.ts';
 import { createDeviceFixture } from './device.ts';
 import type { ClientFactory, MobileOptions, MobilePlatform } from './options.ts';
 import { isLink } from './links.ts';
@@ -64,9 +65,32 @@ export function buildEngine(surface: AgentDeviceSurface): EngineHandle {
   return handle;
 }
 
-/** Creates one agent-device engine: one device session per worker; a test launches the pinned app with `app.open()`. */
+/**
+ * Creates one device engine: one device session per worker; a test launches
+ * the pinned app with `app.open()`. The `driver` option picks what drives
+ * the device: agent-device by default, or argent.
+ */
 export function mobile(options: MobileOptions): EngineHandle {
-  const factory: ClientFactory = (session, connection) => {
+  return buildEngine(new AgentDeviceSurface(options, clientFactory(options)));
+}
+
+/** The client factory the `driver` option names. */
+function clientFactory(options: MobileOptions): ClientFactory {
+  const driver = options.driver ?? 'agent-device';
+  if (driver === 'argent') {
+    if (typeof options.device === 'object' && !Array.isArray(options.device)) {
+      throw new ConfigurationError(
+        'INVALID_CONFIG',
+        "mobile({ driver: 'argent' }) drives local simulators and emulators; a device provider leases devices behind agent-device, which needs the default driver",
+      );
+    }
+    assertArgentInstalled();
+    return (_session, connection) => createArgentDeviceClient(options.platform, connection);
+  }
+  if (driver !== 'agent-device') {
+    throw new ConfigurationError('INVALID_CONFIG', `mobile: \`driver\` must be "agent-device" or "argent", got ${JSON.stringify(driver)}`);
+  }
+  return (session, connection) => {
     // A provider's local daemon must not inherit the user's remote-daemon connection.
     const local = connection?.client?.stateDir !== undefined && connection.daemon === undefined;
     return createAgentDeviceClient(
@@ -79,7 +103,6 @@ export function mobile(options: MobileOptions): EngineHandle {
       }),
     );
   };
-  return buildEngine(new AgentDeviceSurface(options, factory));
 }
 
 /** What reaching this machine from the device will take once a device target can open a URL. */

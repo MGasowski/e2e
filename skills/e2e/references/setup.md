@@ -338,6 +338,15 @@ export default {
   With agent-device 0.21.22, iOS keyboard actions such as `locator.press('Enter')`
   return `UNSUPPORTED_CAPABILITY`; tap an app button when available.
   See `examples/with-limrun` for the same form and restart tests on both platforms.
+- `driver: 'argent'` drives local simulators and emulators through
+  Software Mansion's argent instead (install `@swmansion/argent`; needs
+  `app.bundleId` to install a build). No provider leases, and `clearState`,
+  `closeApp`, `device.alert` (tap the alert's button on `screen`), the
+  clipboard, network, location, appearance, biometrics, keychain, and
+  `toHaveScreenshot` are `UNSUPPORTED_CAPABILITY`. Give an argent target its
+  own `app.identity`: the replay cache does not key on the driver. One argent install per
+  simulator at a time; on an Android emulator stop the other driver's helper
+  first and set `stylus_handwriting_enabled` to 0.
 - Only a control that appeared or moved with the previous action waits out
   `transition` (default 500 ms); agent actions settle `settle` ms (default
   150) before the next observation, `settle: false` skips it.

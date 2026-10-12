@@ -6,7 +6,7 @@
  * engine owes agent-device.
  */
 
-import type { AgentDeviceClient } from '../../src/options.ts';
+import type { DeviceClient } from '../../src/options.ts';
 import type { RawNode } from '../../src/nodes.ts';
 
 export type Responder = (args: unknown) => unknown;
@@ -17,7 +17,7 @@ export interface RecordedCall {
 }
 
 export interface FakeClient {
-  readonly client: AgentDeviceClient;
+  readonly client: DeviceClient;
   readonly calls: RecordedCall[];
   /** Registers or replaces the responder for one `namespace.method`. */
   respond(method: string, responder: Responder): void;
@@ -44,7 +44,7 @@ export function createFakeClient(initial: Readonly<Record<string, Responder>> = 
       },
     });
   return {
-    client: node([]) as AgentDeviceClient,
+    client: node([]) as DeviceClient,
     calls,
     respond: (method, responder) => {
       responders.set(method, responder);

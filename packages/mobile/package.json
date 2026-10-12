@@ -1,7 +1,7 @@
 {
   "name": "@e2e-dev/mobile",
   "version": "0.11.0",
-  "description": "Mobile engine (iOS and Android) for e2e agentic end-to-end testing, built on agent-device",
+  "description": "Mobile engine (iOS and Android) for e2e agentic end-to-end testing, built on agent-device, with an optional argent driver",
   "keywords": [
     "e2e",
     "end-to-end",
@@ -14,7 +14,8 @@
     "expo",
     "simulator",
     "emulator",
-    "agent-device"
+    "agent-device",
+    "argent"
   ],
   "license": "Apache-2.0",
   "contributors": [
@@ -64,15 +65,20 @@
     "zod": "4.6.1"
   },
   "peerDependencies": {
+    "@swmansion/argent": ">=0.28.0 <1",
     "ai": "^7.0.0",
     "e2e": ">=0.15.0 <1"
   },
   "peerDependenciesMeta": {
+    "@swmansion/argent": {
+      "optional": true
+    },
     "ai": {
       "optional": true
     }
   },
   "devDependencies": {
+    "@swmansion/argent": "0.28.0",
     "@types/node": "26.6.2",
     "@types/pngjs": "6.0.5",
     "ai": "7.0.107",

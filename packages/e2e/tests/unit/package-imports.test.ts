@@ -6,7 +6,8 @@
  * peers are stricter: `ai` is loaded lazily by one module and each
  * `@ai-sdk/*` provider by the `e2e/oauth/*` constructor that wraps it, so the
  * CLI boots (and `npx e2e init` runs) before any of them is installed, and
- * the mobile tool pack names `ai` in types only. `copilot()` loads
+ * the mobile tool pack names `ai` in types only. The mobile engine loads
+ * `@swmansion/argent` from its argent driver only, on first use. `copilot()` loads
  * `@ai-sdk/openai` lazily too, only for the models Copilot serves over its
  * Responses API, and `opencodeConsole()` loads every SDK but
  * `@ai-sdk/openai-compatible` lazily. Type imports erase and are
@@ -47,7 +48,7 @@ const SCOPES: readonly Scope[] = [
     },
   },
   { dir: 'web', optionalPeerHomes: {} },
-  { dir: 'mobile', optionalPeerHomes: { ai: [] } },
+  { dir: 'mobile', optionalPeerHomes: { '@swmansion/argent': ['argent.ts'], ai: [] } },
   { dir: 'github', optionalPeerHomes: {} },
 ];
 

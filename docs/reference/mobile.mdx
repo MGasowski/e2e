@@ -81,6 +81,12 @@ export interface MobileOptions {
   /** Platform the target's device runs. */
   readonly platform: MobilePlatform;
   /**
+   * What drives the device: `agent-device` (default) or `argent`, Software
+   * Mansion's argent through the optional peer `@swmansion/argent`. See
+   * "The argent driver" below for what it does differently.
+   */
+  readonly driver?: 'agent-device' | 'argent' | undefined;
+  /**
    * Device to use: a simulator or emulator by name, simulator UDID, or
    * emulator serial (`emulator-5554`), or a connected phone by name. A list
    * is a pool: the
@@ -198,6 +204,84 @@ export default {
   workers: 2,
 } satisfies E2EConfig;
 ```
+
+### The argent driver
+
+`driver: 'argent'` drives local simulators and emulators through
+[argent](https://github.com/software-mansion/argent) instead of
+agent-device. Install it next to the engine; a target that names the driver
+without it is `INVALID_CONFIG` at config load.
+
+<CodeGroup>
+```bash npm
+npm install -D @swmansion/argent
+```
+
+```bash pnpm
+pnpm add -D @swmansion/argent
+```
+
+```bash bun
+bun add -d @swmansion/argent
+```
+</CodeGroup>
+
+```ts title="e2e.config.ts"
+const iphone = mobile({ platform: 'ios', driver: 'argent' });
+```
+
+The surface, the pool, the `device` fixture, and the agent tools are the
+same; what changes is how a command reaches the device:
+
+- argent reads the screen with its own accessibility services and acts by
+  coordinates, so a tap lands at the centre of the node's bounds and a fill
+  taps the field's trailing edge, sends one backspace per character it
+  holds, then types. Before a tap, long press, or fill the engine waits for
+  the tree to hold still for 200 ms (600 ms around the keyboard), the wait
+  XCTest makes on its own: a tap sent while a web view scrolls back under a
+  leaving keyboard is dropped. Swipes and drags go out at once.
+- Text holding argent's own `{{secret:NAME}}` placeholder is
+  `POLICY_DENIED`, since argent would fill it in from the host's
+  environment. A secret with characters outside printable ASCII is
+  `UNSUPPORTED_CAPABILITY`: argent types those through the clipboard.
+- The replay cache does not key on the driver, and the two drivers read
+  different trees. Give an argent target its own `app.identity` so its
+  recordings never replay against, or overwrite, agent-device's.
+- `app.open()` waits for the app's first screen, then for half a second of
+  stillness: a Flutter app lists its controls before it takes touches.
+- `app.bundleId` is required to install a build, since argent's install
+  removes the app by id first; there is no install that keeps data.
+- `device` names a local device. A device provider (EAS Simulators,
+  Limrun) is `INVALID_CONFIG` at config load, and `session` only names the
+  engine's bookkeeping.
+- On an iPhone, `device.dismissKeyboard()` drags on a spot above the
+  keyboard where the tree shows no control. On Android it presses back
+  while the keyboard shows.
+- `device.back()` on iOS taps the navigation bar's back button when there
+  is one, else swipes from the left edge.
+- `UNSUPPORTED_CAPABILITY`, since argent has no tool for them:
+  `app.clearState()`, `device.closeApp`, `device.alert` (tap the alert's
+  button on `screen` instead), `device.clipboard` and `setClipboard`,
+  `setNetwork`, `setAirplaneMode`, `setLocation`, `clearLocation`,
+  `setAppearance`, `setBiometrics`, `enrollBiometrics`, `clearKeychain`,
+  `hover`, the `siri` permission, and a `comparable` screenshot
+  (`toHaveScreenshot`).
+- argent's Android tree carries no role description, so a React Native view
+  with `accessibilityRole="tab"` is a `group` there and `getByRole('tab')`
+  finds nothing. Match it by test id or label.
+- Recordings carry argent's watermark in a corner.
+
+Two installs of argent driving one simulator at the same time fight over
+its accessibility socket and read empty trees: run one project's suite per
+device at a time, or stop the other's server (`npx argent server stop`).
+Android emulators have the same rule across drivers: agent-device's
+snapshot helper and argent's devtools each hold the emulator's UI
+automation, so switching drivers on one emulator needs the other's helper
+stopped (`adb shell am force-stop com.argent.androiddevtools`, or
+`com.callstack.agentdevice.snapshothelper`). Gboard reads argent's taps on an
+emulator as a stylus and opens its handwriting tutorial on the first tap
+into a field; turn stylus handwriting off once per emulator with
+`adb shell settings put secure stylus_handwriting_enabled 0`.
 
 ### Capabilities
 

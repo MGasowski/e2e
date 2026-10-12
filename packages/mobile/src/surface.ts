@@ -15,7 +15,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import type { AppDeployResult, CaptureSnapshotResult } from 'agent-device';
+import type { AppDeployResult } from 'agent-device';
 import {
   EngineError,
   KEY_NAMES,
@@ -56,7 +56,7 @@ import {
   type ProjectedNode,
   type ProjectedSnapshot,
 } from './nodes.ts';
-import { DEVICE_PERMISSIONS, type AgentDeviceClient, type ClientFactory, type DevicePermission, type LaunchPermissions, type MobileOptions, type PermissionState } from './options.ts';
+import { DEVICE_PERMISSIONS, type DeviceClient, type DeviceSnapshot, type ClientFactory, type DevicePermission, type LaunchPermissions, type MobileOptions, type PermissionState } from './options.ts';
 import { maskPng } from './png.ts';
 import { deviceLabel, pinnedApp, type SlotBinding } from './bindings.ts';
 import { assertAppId } from './links.ts';
@@ -130,7 +130,7 @@ export interface OpenAppOptions {
  * is the band the capture's producer measured: `visible` with its frame,
  * `absent`, or that it could not look.
  */
-type RawSnapshot = Partial<Pick<CaptureSnapshotResult, 'nodes' | 'truncated' | 'appName' | 'appBundleId' | 'snapshotQuality' | 'keyboard'>>;
+type RawSnapshot = DeviceSnapshot;
 
 /** Platform element types that are the soft keyboard or one of its keys, as agent-device names them. */
 const KEYBOARD_TYPES: ReadonlySet<string> = new Set(['keyboard', 'key']);
@@ -285,6 +285,7 @@ const DEFAULT_SETTLE_QUIET_MS = 150;
 /** Every option `mobile()` takes, kept equal to `MobileOptions` by the compiler. */
 const MOBILE_OPTION_KEYS: readonly string[] = Object.keys({
   platform: true,
+  driver: true,
   device: true,
   session: true,
   snapshot: true,
@@ -350,7 +351,7 @@ function tellHarness(call: () => void): void {
 }
 
 export class AgentDeviceSurface {
-  private client: AgentDeviceClient | undefined;
+  private client: DeviceClient | undefined;
   private attempt: Attempt | undefined;
   /** The attempt's `EngineAttemptContext.screen`, which locate captures feed; undefined between attempts. */
   private screenSink: ((snapshot: EngineSnapshot) => void) | undefined;
@@ -437,7 +438,7 @@ export class AgentDeviceSurface {
   }
 
   /** The live client; INVALID_STATE before init or after dispose. */
-  requireClient(): AgentDeviceClient {
+  requireClient(): DeviceClient {
     if (this.client === undefined) throw invalidState('the agent-device engine is not initialized');
     return this.client;
   }
@@ -447,7 +448,7 @@ export class AgentDeviceSurface {
    * its failure. Contributed-fixture methods route through here too, so the
    * device fixture never carries its own error mapping.
    */
-  async command<T>(label: string, run: (client: AgentDeviceClient) => Promise<T>, signal?: AbortSignal): Promise<T> {
+  async command<T>(label: string, run: (client: DeviceClient) => Promise<T>, signal?: AbortSignal): Promise<T> {
     const client = this.requireClient();
     return runCommand(label, () => this.track(run(client)), signal ?? new AbortController().signal, this.where);
   }
@@ -460,7 +461,7 @@ export class AgentDeviceSurface {
    * `device.back()` followed by a tap lands where the returning screen has
    * not yet arrived.
    */
-  async screenCommand<T>(label: string, run: (client: AgentDeviceClient) => Promise<T>, signal: AbortSignal): Promise<T> {
+  async screenCommand<T>(label: string, run: (client: DeviceClient) => Promise<T>, signal: AbortSignal): Promise<T> {
     const before = this.latestIndex;
     const result = await this.command(label, run, signal);
     this.markAction(before);
@@ -1191,7 +1192,7 @@ export class AgentDeviceSurface {
           return client.interactions.hover(this.actionTarget(target));
         case 'fill':
           // oxlint-disable-next-line unicorn/no-array-fill-with-reference-type -- agent-device fill, not Array#fill
-          return client.interactions.fill({ ...this.actionTarget(target), text: action.value, ...settle });
+          return client.interactions.fill({ ...this.actionTarget(target), text: action.value, ...settle }, { sensitive: action.sensitive });
         case 'clear':
           // oxlint-disable-next-line unicorn/no-array-fill-with-reference-type -- agent-device fill, not Array#fill
           return client.interactions.fill({ ...this.actionTarget(target), text: '', ...settle });
@@ -1243,7 +1244,7 @@ export class AgentDeviceSurface {
    * modifiers and the other named keys (`Escape`, `Tab`, `Backspace`, the
    * arrows) have nothing to land on and are refused.
    */
-  private async pressKey(client: AgentDeviceClient, entry: NodeBinding, key: string, settle: SettleOptions): Promise<unknown> {
+  private async pressKey(client: DeviceClient, entry: NodeBinding, key: string, settle: SettleOptions): Promise<unknown> {
     const parsed = parseKey(key);
     if (parsed === undefined) {
       throw unsupported(

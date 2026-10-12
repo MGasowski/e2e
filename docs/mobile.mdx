@@ -7,7 +7,10 @@ icon: "mobile-screen"
 `@e2e-dev/mobile` runs tests on iOS simulators, Android emulators, and
 phones connected to your machine. It is built on
 [agent-device](https://github.com/callstack/agent-device). Tests use the
-same `agent`, `screen`, and `expect` APIs as browser tests.
+same `agent`, `screen`, and `expect` APIs as browser tests. To drive local
+simulators and emulators with Software Mansion's argent instead, set
+`mobile({ driver: 'argent' })`; [the argent driver](/reference/mobile#the-argent-driver)
+lists what changes.
 
 ## Set up
 

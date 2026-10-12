@@ -21,7 +21,7 @@ import {
 } from 'e2e/engine';
 import { bindingsVariable, decodeBindings, deviceLabel, encodeBindings, pinnedApp, type DeviceSource, type SlotBinding } from './bindings.ts';
 import { isRunnerFailure, message, runCommand } from './errors.ts';
-import type { AgentDeviceClient, MobileOptions, MobilePlatform, ClientFactory } from './options.ts';
+import type { DeviceClient, MobileOptions, MobilePlatform, ClientFactory } from './options.ts';
 import { asDeviceProvider, LeasedDevices, type RecordingDeviceProvider } from './provider.ts';
 
 /** An Apple simulator UDID. */
@@ -134,7 +134,7 @@ export class DevicePool {
   /** What this process's `prepare` bound, per target: a handle may serve several targets and runs. */
   private readonly bound = new Map<string, readonly SlotBinding[]>();
   /** The clients `warm` opened sessions with, per target, held for `finish` to close whatever `warm` got to. */
-  private readonly warmed = new Map<string, AgentDeviceClient[]>();
+  private readonly warmed = new Map<string, DeviceClient[]>();
 
   constructor(
     private readonly options: MobileOptions,
@@ -284,7 +284,7 @@ export class DevicePool {
   }
 
   /** Holds a warm-up client for `finish`, before its first command: a boot that fails still opened the session. */
-  private retain(targetName: string, client: AgentDeviceClient): void {
+  private retain(targetName: string, client: DeviceClient): void {
     const clients = this.warmed.get(targetName) ?? [];
     clients.push(client);
     this.warmed.set(targetName, clients);
@@ -300,7 +300,7 @@ export class DevicePool {
  * here, like a warm-up open that meets one; any other failure is logged and
  * left to the first attempt. True when the runner is up.
  */
-async function prepareRunner(client: AgentDeviceClient, where: DeviceSelection, info: EnginePrepareInfo, at: string): Promise<boolean> {
+async function prepareRunner(client: DeviceClient, where: DeviceSelection, info: EnginePrepareInfo, at: string): Promise<boolean> {
   try {
     await runCommand('prepare ios-runner', () => client.command.prepare({ action: 'ios-runner', ...where }), info.signal, at);
     return true;

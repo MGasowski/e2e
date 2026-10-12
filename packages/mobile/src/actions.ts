@@ -1,7 +1,7 @@
 /** The action kinds a device surface declares, and the pointer dispatch that agrees with them. */
 
 import type { LocatorActionKind, PointerAction, PointerActionKind, ViewportPoint } from 'e2e/engine';
-import type { AgentDeviceClient } from './options.ts';
+import type { DeviceClient } from './options.ts';
 import { unsupported } from './support.ts';
 
 /**
@@ -57,7 +57,7 @@ export const DEVICE_POINTER_ACTIONS: readonly PointerActionKind[] = ['tap', 'dou
  * exhaustive against the contract.
  */
 export function pointerInteraction(
-  client: AgentDeviceClient,
+  client: DeviceClient,
   point: ViewportPoint,
   action: PointerAction,
   settle: Record<string, unknown>,

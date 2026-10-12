@@ -13,6 +13,14 @@ ignoreWorkspaceCycles: true
 
 allowBuilds:
   esbuild: true
+  # @swmansion/argent (the mobile engine's optional argent driver) brings these
+  # in; the tool server it runs needs none of them built to drive a device.
+  '@fails-components/webtransport-transport-http3-quiche': false
+  electron: false
+  node-pty: false
+  tree-sitter: false
+  tree-sitter-javascript: false
+  tree-sitter-typescript: false
   '@scarf/scarf': false
   keytar: false
   puppeteer: false

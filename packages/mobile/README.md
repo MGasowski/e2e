@@ -69,6 +69,7 @@ the other old app options are `INVALID_CONFIG` naming their key under `app`.
 | Option | Meaning |
 | --- | --- |
 | `platform` | `'ios'` or `'android'`. |
+| `driver` | `'agent-device'` (default) or `'argent'`, which drives local simulators and emulators through Software Mansion's [argent](https://github.com/software-mansion/argent). Install `@swmansion/argent` next to this package to use it; the device commands argent has no tool for are `UNSUPPORTED_CAPABILITY` (see [the argent driver](https://e2e.tester.army/docs/reference/mobile#the-argent-driver)). |
 | `device` | Simulator or emulator name or UDID, or a connected phone's name. A list is a pool: one worker per entry, worker slot `n` driving the `n`th. Omitted, every booted device of the platform is the pool, as many as the run has slots. |
 | `session` | agent-device session name, before the worker slot: slot `n` drives its device under `<session>-<n>`, `e2e-<target name>-<n>` by default. One run per session at a time. |
 | `snapshot` | `'full'` (default, includes static text) or `'interactive'` (actionable nodes only). |

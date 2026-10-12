@@ -30,8 +30,22 @@ const iosDevices = process.env.E2E_MOBILE_BENCHMARK_IOS_DEVICE?.split(',')
   .map((udid) => udid.trim())
   .filter((udid) => udid !== '');
 
+/**
+ * What drives the devices: agent-device unless `E2E_MOBILE_BENCHMARK_DRIVER`
+ * names `argent`, which runs the same suites on Software Mansion's argent.
+ */
+const driver = process.env.E2E_MOBILE_BENCHMARK_DRIVER === 'argent' ? 'argent' : undefined;
+
+/**
+ * The replay cache keys on the app identity, not the driver, and the two
+ * drivers read different trees: argent targets record under their own
+ * identity, so they never replay or overwrite the committed recordings.
+ */
+const identitySuffix = driver === 'argent' ? '-argent' : '';
+
 export const ios = mobile({
   platform: 'ios',
+  driver,
   device: iosDevices === undefined || iosDevices.length !== 1 ? iosDevices : iosDevices[0],
   session: 'e2e-mobile-benchmark-ios',
   // A control that just moved waits this long to come to rest before a tap;
@@ -44,6 +58,7 @@ export const ios = mobile({
 
 export const android = mobile({
   platform: 'android',
+  driver,
   session: 'e2e-mobile-benchmark-android',
   // A control that arrived with the last action is found again once this
   // budget has passed, so the budget only has to outlast the transition: the
@@ -59,12 +74,12 @@ export default {
     {
       name: 'ios-simulator',
       engine: ios,
-      app: { bundleId: APP_ID, appPath: process.env.E2E_MOBILE_BENCHMARK_IOS_APP, identity: `${APP_ID}-ios` },
+      app: { bundleId: APP_ID, appPath: process.env.E2E_MOBILE_BENCHMARK_IOS_APP, identity: `${APP_ID}-ios${identitySuffix}` },
     },
     {
       name: 'android-emulator',
       engine: android,
-      app: { bundleId: APP_ID, appPath: process.env.E2E_MOBILE_BENCHMARK_ANDROID_APP, identity: `${APP_ID}-android` },
+      app: { bundleId: APP_ID, appPath: process.env.E2E_MOBILE_BENCHMARK_ANDROID_APP, identity: `${APP_ID}-android${identitySuffix}` },
     },
   ],
   // One worker per simulator in the pool; an engine with fewer devices
