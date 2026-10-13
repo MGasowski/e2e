@@ -36,7 +36,8 @@
     "@openrouter/ai-sdk-provider",
     "@expo/fingerprint",
     "@expo/repack-app",
-    "@oxc-project/runtime"
+    "@oxc-project/runtime",
+    "@tailwindcss/turbopack"
   ],
   "rules": {
     "unused-class-member": "warn",
