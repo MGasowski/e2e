@@ -1,27 +1,31 @@
 name: website-e2e
 
-# The migration safety net for website/ (apps/website-e2e): functional and
-# visual suites for the e2e landing page and the docs. They test production
-# by default, which a pull request here cannot change, so the workflow is not
-# a required check. It runs when the suite itself changes, and on demand
-# against any URLs; the visual job takes `update_snapshots` to write Linux
-# baselines and upload them for review.
+# Functional and visual suites for website/ (apps/website-e2e): the e2e
+# landing page and the docs, at desktop and phone sizes. Each job builds the
+# site from this checkout and tests it on 127.0.0.1:3000, so a pull request
+# that changes website/, a docs page, or the suite is tested as it stands.
+# Run it on demand against any URLs instead (production, a preview); the
+# visual job takes `update_snapshots` to write Linux baselines and upload
+# them for review.
 #
 # tester.army is behind Vercel's firewall, which challenges a headless
-# browser that loads many pages: set the E2E_BYPASS_HEADER secret
-# ("Name: value") to a header a firewall rule lets through.
+# browser that loads many pages: for runs against it, set the
+# E2E_BYPASS_HEADER secret ("Name: value") to a header a firewall rule lets through.
 on:
   pull_request:
     paths:
       - 'apps/website-e2e/**'
+      - 'website/**'
+      - 'docs/**'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/website-e2e.yml'
   workflow_dispatch:
     inputs:
       landing_url:
-        description: Landing page URL (default https://tester.army/e2e)
+        description: Landing page URL (default this checkout's website/ build)
         required: false
       docs_url:
-        description: Docs URL (default https://e2e.tester.army/docs)
+        description: Docs URL (default this checkout's website/ build)
         required: false
       update_snapshots:
         description: Write new and changed visual baselines and upload them
@@ -30,8 +34,12 @@ on:
 
 env:
   E2E_TELEMETRY_DISABLED: '1'
-  E2E_LANDING_URL: ${{ inputs.landing_url }}
-  E2E_DOCS_URL: ${{ inputs.docs_url }}
+  E2E_LANDING_URL: ${{ inputs.landing_url || 'http://127.0.0.1:3000/e2e' }}
+  E2E_DOCS_URL: ${{ inputs.docs_url || 'http://127.0.0.1:3000/docs' }}
+  # Absolute URLs in the site's metadata point back at the local server.
+  SITE_URL: http://127.0.0.1:3000
+  NEXT_TELEMETRY_DISABLED: '1'
+
   E2E_BYPASS_HEADER: ${{ secrets.E2E_BYPASS_HEADER }}
 
 permissions:
@@ -57,6 +65,12 @@ jobs:
         run: pnpm --filter @e2e-dev/web exec playwright-core install chromium --with-deps
       - name: Build
         run: pnpm --filter e2e --filter @e2e-dev/web run build
+      - name: Build and start website
+        run: |
+          pnpm --filter @e2e-dev/website run build
+          (pnpm --filter @e2e-dev/website exec next start --hostname 127.0.0.1 --port 3000 > "$RUNNER_TEMP/website.log" 2>&1 &)
+          for i in $(seq 1 60); do node -e "fetch('http://127.0.0.1:3000/docs').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))" && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/website.log"; exit 1
       - name: Run test
         run: pnpm --filter @e2e-dev/website-e2e run test
       - name: Upload report
@@ -85,9 +99,15 @@ jobs:
         with:
           node-version: 26
           cache: pnpm
-      - run: pnpm install --frozen-lockfile --filter @e2e-dev/website-e2e...
+      - run: pnpm install --frozen-lockfile --filter @e2e-dev/website-e2e... --filter @e2e-dev/website
       - name: Build
         run: pnpm --filter e2e --filter @e2e-dev/web run build
+      - name: Build and start website
+        run: |
+          pnpm --filter @e2e-dev/website run build
+          (pnpm --filter @e2e-dev/website exec next start --hostname 127.0.0.1 --port 3000 > "$RUNNER_TEMP/website.log" 2>&1 &)
+          for i in $(seq 1 60); do node -e "fetch('http://127.0.0.1:3000/docs').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))" && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/website.log"; exit 1
       - name: Run visual test
         run: pnpm --filter @e2e-dev/website-e2e run test:visual ${{ inputs.update_snapshots && '--update-snapshots' || '' }}
       - name: Upload report

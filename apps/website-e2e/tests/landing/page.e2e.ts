@@ -71,7 +71,8 @@ describe('landing page', { tags: ['landing'] }, () => {
 
   test('the header links home, to the docs, Discord, and the GitHub repo with its stars', async ({ browser, screen }) => {
     const header = screen.getByRole('banner');
-    await expect(header.getByRole('link', { name: 'TesterArmy home' })).toHaveAttribute('href', '/');
+    // `/` on tester.army; the absolute address on website/, where `/` is the docs.
+    await expect(header.getByRole('link', { name: 'TesterArmy home' })).toHaveAttribute('href', /^(\/|https:\/\/tester\.army\/?)$/);
     const home = header.getByRole('link', { name: 'e2e home' });
     await expect(home).toHaveAttribute('href', '/e2e');
     const stars = header.getByRole('link', { name: /^e2e on GitHub/ });

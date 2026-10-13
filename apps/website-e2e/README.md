@@ -1,10 +1,17 @@
 # @e2e-dev/website-e2e
 
-The safety net for moving the e2e landing page (now in the Tester Army app,
-at https://tester.army/e2e) and the Mintlify docs (`docs/`, at
-https://e2e.tester.army/docs) into `website/`. The suites pin down what the
-current sites show and do. Run them against production to record that, then
-against a `website/` build to see how far the migration matches.
+Functional and visual suites for `website/`: the e2e landing page and the
+docs. They began as the safety net for moving the landing page (in the
+Tester Army app, at https://tester.army/e2e) and the Mintlify docs (`docs/`,
+at https://e2e.tester.army/docs) into `website/`, and pinned down what those
+sites showed and did; `website/` now passes them.
+
+- The functional suite passes against `website/`, the Tester Army app, and
+  Mintlify alike.
+- The landing baselines match both the Tester Army app and `website/`, which
+  renders the same page.
+- The docs baselines are `website/`'s design. Mintlify's look differs, so
+  its screenshots no longer match.
 
 ## Layout
 
@@ -30,7 +37,8 @@ against a `website/` build to see how far the migration matches.
   headings, generated from `docs/docs.json` by `pnpm sync:docs`. It is
   committed so the suite keeps its expectations after `docs/` is retired.
   `tests/docs/inventory.e2e.ts` fails while the two disagree.
-- `support/site.ts`: where the sites are. Both default to production.
+- `support/site.ts`: where the sites are. Both default to production;
+  `website-e2e.yml` points them at a build of the checkout.
 
 Every test runs at 1440×1000 (`desktop`) and 390×844 (`mobile`). Tests look
 the page up by role, label, and text, not Mintlify's markup, so the same
@@ -44,16 +52,19 @@ pnpm --filter @e2e-dev/website-e2e test         # functional
 pnpm --filter @e2e-dev/website-e2e test:visual  # visual, in Linux (see below)
 ```
 
-Point either at a `website/` build:
+Point either at a `website/` production build (the landing URL needs its
+`/e2e` path; the tests build its markdown twin by adding `.md`):
 
 ```bash
-E2E_LANDING_URL=http://localhost:3000 E2E_DOCS_URL=http://localhost:3000/docs \
-  pnpm --filter @e2e-dev/website-e2e test
+cd website && SITE_URL=http://127.0.0.1:3200 pnpm build
+./node_modules/.bin/next start --hostname 0.0.0.0 --port 3200 &
+cd ../apps/website-e2e
+E2E_LANDING_URL=http://127.0.0.1:3200/e2e E2E_DOCS_URL=http://127.0.0.1:3200/docs pnpm test
 ```
 
-A red test on `website/` is a gap in the migration, or an intended change.
-For an intended change, update the test or the baseline in the same pull
-request that makes it.
+A red test on `website/` is a regression, or an intended change. For an
+intended change, update the test or the baseline in the same pull request
+that makes it.
 
 ## Visual baselines
 
