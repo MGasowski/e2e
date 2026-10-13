@@ -198,8 +198,9 @@ suites that consume the built packages the way a user would.
   two disagree. Visual baselines are Linux screenshots only: `test:visual`
   runs in Playwright's image off Linux, the image `website-e2e.yml` uses.
   tester.army's firewall challenges a headless browser that loads many
-  pages, so heavy runs need `E2E_BYPASS_HEADER` (README). Not a required
-  check: a PR cannot change production.
+  pages: run the landing suites against a local build of the app (README)
+  or set `E2E_BYPASS_HEADER`. Not a required check: a PR cannot change
+  production.
 - `skills/e2e/` — the agent skill for consumers: `SKILL.md` plus
   `references/<topic>.md`, one per `e2e guide` topic. It lives at the repo
   root because `npx skills add tester-army/e2e` only looks in well-known

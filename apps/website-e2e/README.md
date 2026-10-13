@@ -67,16 +67,43 @@ at every changed image before committing it. Diffs land in `.linux/.e2e/results/
 What the comparisons hold still:
 - Reduced motion is forced, videos stop on their first frame, and the
   landing page's particle canvases are hidden.
-- The live GitHub star count, videos, and the YouTube thumbnail are masked.
+- The live GitHub star count is removed; videos, the YouTube thumbnail, and
+  the docs promo card are masked.
 - Third-party scripts are blocked, the theme is pinned, and the cookie banner
   is answered before it shows.
 
-## Bot protection
+## Bot protection and a local landing page
 
 tester.army sits behind Vercel's firewall. A headless browser that loads a
 few hundred pages quickly gets a challenge it cannot pass, and the landing
-tests fail at their first assertion. The suite runs three workers to stay
-under that, but scheduled or repeated runs need a bypass: set
-`E2E_BYPASS_HEADER="Name: value"` to a header that a firewall rule lets
-through, or to Vercel's `x-vercel-protection-bypass` secret. The browser
-sends it to `*.tester.army` only.
+tests fail at their first assertion. Run them against a local production
+build of the Tester Army app instead. It needs no database or keys for `/e2e`;
+placeholders satisfy the build:
+
+```bash
+# in a worktree of tester-army/app at origin/main, with no .env file
+cd apps/website
+export NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_E2E=1 NEXT_PUBLIC_PREVIEW_BUILD=1 \
+  DATABASE_URL=postgresql://e2e:e2e@127.0.0.1:1/e2e BASE_URL=http://127.0.0.1:4390 \
+  NEXTAUTH_URL=http://127.0.0.1:4390 AUTH_SECRET=e2e-local-auth-secret-0123456789abcdef0123456789abcdef \
+  WORKOS_API_KEY=sk_test_e2e WORKOS_CLIENT_ID=client_e2e \
+  WORKOS_COOKIE_PASSWORD=e2e-cookie-password-0123456789abcdef0123 \
+  NEXT_PUBLIC_WORKOS_REDIRECT_URI=http://127.0.0.1:4390/callback STRIPE_SECRET_KEY=sk_test_e2e_unused \
+  CREDENTIALS_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+./node_modules/.bin/next build && ./node_modules/.bin/next start --hostname 0.0.0.0 --port 4390
+
+# here
+E2E_LANDING_URL=http://127.0.0.1:4390/e2e pnpm test tests/landing
+E2E_LANDING_URL=http://127.0.0.1:4390/e2e pnpm test:visual tests/landing
+```
+
+`test:visual` forwards the port into its Linux container, so the URL works
+unchanged there. Bind to `0.0.0.0` so the container can reach the server.
+Without GitHub credentials the build hides the header's star count; the
+visual tests remove it on every run anyway, so local and production
+screenshots match.
+
+For runs against production itself, set `E2E_BYPASS_HEADER="Name: value"` to
+a header that a firewall rule lets through, or to Vercel's
+`x-vercel-protection-bypass` secret. The browser sends it to `*.tester.army`
+only.

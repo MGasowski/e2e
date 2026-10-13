@@ -9,7 +9,9 @@
 //   pnpm test:visual tests/docs --target desktop
 //
 // E2E_LANDING_URL, E2E_DOCS_URL, and E2E_BYPASS_HEADER pass through to the
-// container. E2E_VISUAL_NATIVE=1 runs in place on any OS, writing that OS's
+// container, and a loopback port they name is forwarded to the host, so a
+// local build (E2E_LANDING_URL=http://127.0.0.1:4390/e2e) works unchanged.
+// E2E_VISUAL_NATIVE=1 runs in place on any OS, writing that OS's
 // screenshots, which are git-ignored scratch.
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -35,11 +37,30 @@ if (process.platform === 'linux' || process.env.E2E_VISUAL_NATIVE === '1') {
   }
   mkdirSync(path.join(app, '.linux'), { recursive: true });
   const quoted = args.map((arg) => `'${arg.replaceAll("'", "'\\''")}'`).join(' ');
+  // A site served on the host (a local build at http://127.0.0.1:4390) keeps
+  // its URL inside the container: each loopback port is forwarded to the host,
+  // since the runner allows plain HTTP to loopback hosts only.
+  const hostPorts = [
+    ...new Set(
+      ['E2E_LANDING_URL', 'E2E_DOCS_URL'].flatMap((name) => {
+        const raw = process.env[name];
+        if (!raw) return [];
+        const url = new URL(raw);
+        if (!['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return [];
+        return [url.port || (url.protocol === 'https:' ? '443' : '80')];
+      }),
+    ),
+  ];
+  const forward = hostPorts.map(
+    (port) =>
+      `node -e "const net=require('net');net.createServer((c)=>{const s=net.connect(${port},'host.docker.internal');c.pipe(s).pipe(c);c.on('error',()=>s.destroy());s.on('error',()=>c.destroy())}).listen(${port})" &`,
+  );
   // The container builds from a copy of the working tree, so uncommitted
   // changes count, and installs Linux binaries without touching the host's
   // node_modules. The pnpm store lives in a named volume between runs.
   const script = [
     'set -e',
+    ...forward,
     'mkdir -p /work && tar -xf - -C /work && cd /work',
     'corepack enable >/dev/null',
     'pnpm install --frozen-lockfile --filter @e2e-dev/website-e2e... >/dev/null',
@@ -62,6 +83,8 @@ if (process.platform === 'linux' || process.env.E2E_VISUAL_NATIVE === '1') {
       'run', '--rm', '-i', '--init', '--ipc=host',
       // CI runs x86_64; glyph rendering can differ on arm64, so emulate it on Apple silicon.
       '--platform', 'linux/amd64',
+      // Docker Desktop resolves this name already; Linux hosts need it mapped.
+      '--add-host', 'host.docker.internal:host-gateway',
       '-v', `${app}:/out`,
       '-v', 'e2e-website-e2e-pnpm-store-amd64:/root/.local/share/pnpm/store',
       ...passthrough,
