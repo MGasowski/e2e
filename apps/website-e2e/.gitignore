@@ -1,0 +1,7 @@
+.e2e/
+# Scratch the Linux container leaves behind (scripts/visual.mjs): its report and diffs.
+.linux/
+# Baselines are Linux screenshots, the OS CI runs; a native run on another OS
+# writes its own next to them, which nobody else can compare against.
+*-darwin.png
+*-win32.png

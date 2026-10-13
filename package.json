@@ -30,6 +30,7 @@
     "test:testbed": "pnpm run build && pnpm --filter @e2e-dev/testbed test",
     "test:web-benchmark": "pnpm run build && pnpm --filter @e2e-dev/web-benchmark test",
     "test:mobile-benchmark": "pnpm run build && pnpm --filter @e2e-dev/mobile-benchmark test",
+    "test:website-e2e": "pnpm run build && pnpm --filter @e2e-dev/website-e2e test",
     "test:agent": "pnpm run build && pnpm --filter @e2e-dev/testbed test:agent",
     "test:scripts": "node --test \"scripts/**/*.test.ts\"",
     "bench:ab": "node scripts/bench-ab.ts"

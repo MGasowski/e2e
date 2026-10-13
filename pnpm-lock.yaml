@@ -279,6 +279,22 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  apps/website-e2e:
+    dependencies:
+      '@e2e-dev/web':
+        specifier: workspace:*
+        version: link:../../packages/web
+      e2e:
+        specifier: workspace:*
+        version: link:../../packages/e2e
+    devDependencies:
+      '@types/node':
+        specifier: 26.6.2
+        version: 26.6.2
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
   docs:
     devDependencies:
       '@ai-sdk/typesafe-ai':
