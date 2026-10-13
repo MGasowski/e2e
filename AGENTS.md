@@ -187,6 +187,19 @@ suites that consume the built packages the way a user would.
   and builds the site under the `docs gate`. `website/AGENTS.md` is written
   by `next dev`; read the Next.js guides it points to before writing app
   code.
+- `apps/website-e2e` (`@e2e-dev/website-e2e`, private) — the migration's
+  safety net: functional and visual suites for the landing page and every
+  docs page, at desktop and phone sizes. They test production by default;
+  `E2E_LANDING_URL` and `E2E_DOCS_URL` point them at a `website/` build,
+  where a red test is a migration gap or an intended change to update in the
+  same PR. Tests query roles, labels, and text, not Mintlify's markup.
+  `support/docs-pages.ts` is generated from `docs/docs.json` (`pnpm
+  sync:docs`) and committed, so it outlives `docs/`; a test fails while the
+  two disagree. Visual baselines are Linux screenshots only: `test:visual`
+  runs in Playwright's image off Linux, the image `website-e2e.yml` uses.
+  tester.army's firewall challenges a headless browser that loads many
+  pages, so heavy runs need `E2E_BYPASS_HEADER` (README). Not a required
+  check: a PR cannot change production.
 - `skills/e2e/` — the agent skill for consumers: `SKILL.md` plus
   `references/<topic>.md`, one per `e2e guide` topic. It lives at the repo
   root because `npx skills add tester-army/e2e` only looks in well-known
