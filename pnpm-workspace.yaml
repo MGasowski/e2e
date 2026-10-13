@@ -2,6 +2,7 @@ packages:
   - packages/*
   - apps/*
   - docs
+  - website
 
 # pnpm 12 refuses versions published less than a day ago by default. Exact pins
 # already decide what we install, so the delay only blocks deliberate bumps.
@@ -17,6 +18,7 @@ allowBuilds:
   keytar: false
   puppeteer: false
   sharp: false
+  unrs-resolver: false
 
 overrides:
   'fast-uri@>=3.0.0 <3.1.8': 3.1.8

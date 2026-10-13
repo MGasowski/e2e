@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       docs: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docs == 'true' }}
+      website: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.website == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -51,11 +52,32 @@ jobs:
       - name: Check docs
         run: pnpm run docs:check
 
+  # website/ is the Next.js site that will replace docs/ (landing page and
+  # docs). It rides this workflow's gate until docs/ is retired, so the
+  # ruleset needs no new required check.
+  website:
+    needs: changes
+    if: ${{ needs.changes.outputs.website == 'true' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@9fd676a19091d4595eefd76e4bd31c97133911f1 # v4.2.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint website
+        run: pnpm --filter @e2e-dev/website run lint
+      - name: Build website
+        run: pnpm --filter @e2e-dev/website run build
+
   # The one check the ruleset requires from this workflow. A skipped job
   # passes (the change cannot reach it); a failed or cancelled one fails it.
   gate:
     name: docs gate
-    needs: [changes, build]
+    needs: [changes, build, website]
     if: ${{ always() }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 5

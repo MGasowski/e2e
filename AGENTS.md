@@ -179,6 +179,14 @@ suites that consume the built packages the way a user would.
   pages to `packages/e2e/docs/` (gitignored,
   `packages/e2e/scripts/prepare-build.ts`) so the published package ships
   them for agents to read offline.
+- `website/` — the Next.js site (`@e2e-dev/website`, App Router, Tailwind)
+  that will supersede `docs/`. The e2e landing page migrates into it from
+  the Tester Army app, and the documentation migrates from `docs/`,
+  gradually. Until the migration is done, `docs/` stays the published docs
+  and the rules above still apply to it. `docs.yml` lints
+  and builds the site under the `docs gate`. `website/AGENTS.md` is written
+  by `next dev`; read the Next.js guides it points to before writing app
+  code.
 - `skills/e2e/` — the agent skill for consumers: `SKILL.md` plus
   `references/<topic>.md`, one per `e2e guide` topic. It lives at the repo
   root because `npx skills add tester-army/e2e` only looks in well-known
