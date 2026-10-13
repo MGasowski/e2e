@@ -3,7 +3,7 @@ import { expect } from 'e2e';
 import { landing } from '../../support/site.ts';
 import { openStill, stabilize } from '../../support/stable.ts';
 import { compareScreens, compareViewport, scrollTo, type ScrollTarget } from '../../support/visual.ts';
-import { hideCanvases, landingMask } from './mask.ts';
+import { hideLiveContent } from './mask.ts';
 
 /**
  * Every section of the landing page as it first renders, one viewport each,
@@ -24,21 +24,21 @@ describe('landing visuals: sections', { tags: ['landing', 'visual'] }, () => {
     await stabilize(browser, 'dark');
     await openStill(browser, landing());
     await expect(screen.getByRole('heading', { level: 1 })).toBeVisible();
-    await hideCanvases(browser);
+    await hideLiveContent(browser);
   });
 
   test('hero', async ({ browser, screen }) => {
-    await compareScreens(browser, screen, 'landing-hero', { mask: landingMask(browser) });
+    await compareScreens(browser, screen, 'landing-hero', {});
   });
 
   test('the page at its middle and end', async ({ browser, screen }) => {
-    await compareScreens(browser, screen, 'landing-page', { at: ['middle', 'end'], mask: landingMask(browser) });
+    await compareScreens(browser, screen, 'landing-page', { at: ['middle', 'end'] });
   });
 
   for (const [name, target] of sections) {
     test(`${name} section`, async ({ browser, screen }) => {
       await scrollTo(browser, target);
-      await compareViewport(browser, screen, `landing-${name}`, landingMask(browser));
+      await compareViewport(browser, screen, `landing-${name}`);
     });
   }
 });
