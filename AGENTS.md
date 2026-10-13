@@ -180,27 +180,32 @@ suites that consume the built packages the way a user would.
   `packages/e2e/scripts/prepare-build.ts`) so the published package ships
   them for agents to read offline.
 - `website/` — the Next.js site (`@e2e-dev/website`, App Router, Tailwind)
-  that will supersede `docs/`. The e2e landing page migrates into it from
-  the Tester Army app, and the documentation migrates from `docs/`,
-  gradually. Until the migration is done, `docs/` stays the published docs
-  and the rules above still apply to it. `docs.yml` lints
-  and builds the site under the `docs gate`. `website/AGENTS.md` is written
-  by `next dev`; read the Next.js guides it points to before writing app
-  code.
-- `apps/website-e2e` (`@e2e-dev/website-e2e`, private) — the migration's
-  safety net: functional and visual suites for the landing page and every
-  docs page, at desktop and phone sizes. They test production by default;
+  that supersedes `docs/` as the published site: the landing page at
+  `/e2e`, ported from the Tester Army app (`components/landing/e2e/`; the
+  app's `main` is the source of truth for its content), and the docs under
+  `/docs`. The docs content stays in `docs/`: the site reads `docs.json` and
+  the `.mdx` pages at build time and renders Mintlify's components itself
+  (`components/docs/mdx/`), so the rules above still apply to `docs/`.
+  `scripts/sync-docs.mjs` (run before `dev` and `build`) copies the images
+  and the `docs/snippets/*.jsx` components into gitignored places. It also
+  serves the `.md` twins, `llms.txt`, `llms-full.txt`, the sitemap, search,
+  and the `docs.json` redirects (`README.md`). `docs.yml` lints and builds
+  the site under the `docs gate`. `website/AGENTS.md` is written by
+  `next dev`; read the Next.js guides it points to before writing app code.
+- `apps/website-e2e` (`@e2e-dev/website-e2e`, private) — functional and
+  visual suites for `website/`'s landing page and every docs page, at
+  desktop and phone sizes. They test production by default;
   `E2E_LANDING_URL` and `E2E_DOCS_URL` point them at a `website/` build,
-  where a red test is a migration gap or an intended change to update in the
-  same PR. Tests query roles, labels, and text, not Mintlify's markup.
-  `support/docs-pages.ts` is generated from `docs/docs.json` (`pnpm
-  sync:docs`) and committed, so it outlives `docs/`; a test fails while the
+  which `website-e2e.yml` builds from the checkout. A red test is a
+  regression or an intended change to update in the same PR. Tests query
+  roles, labels, and text. `support/docs-pages.ts` is generated from
+  `docs/docs.json` (`pnpm sync:docs`) and committed; a test fails while the
   two disagree. Visual baselines are Linux screenshots only: `test:visual`
   runs in Playwright's image off Linux, the image `website-e2e.yml` uses.
-  tester.army's firewall challenges a headless browser that loads many
-  pages: run the landing suites against a local build of the app (README)
-  or set `E2E_BYPASS_HEADER`. Not a required check: a PR cannot change
-  production.
+  The docs baselines are `website/`'s; the landing baselines match it and
+  the Tester Army app alike. tester.army's firewall challenges a headless
+  browser that loads many pages: set `E2E_BYPASS_HEADER` for runs against
+  production. Not a required check.
 - `skills/e2e/` — the agent skill for consumers: `SKILL.md` plus
   `references/<topic>.md`, one per `e2e guide` topic. It lives at the repo
   root because `npx skills add tester-army/e2e` only looks in well-known

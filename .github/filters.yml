@@ -48,6 +48,8 @@ docs:
 # The Next.js site replacing docs/; checked in docs.yml under the same gate.
 website:
   - 'website/**'
+  # The site renders the docs pages, navigation, and snippets from here.
+  - 'docs/**'
   - 'package.json'
   - 'pnpm-lock.yaml'
   - 'pnpm-workspace.yaml'

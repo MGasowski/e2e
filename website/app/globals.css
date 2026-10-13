@@ -1,26 +1,261 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
+/*
+ * Design tokens, from the Tester Army landing page ("Bitmap version").
+ * The `ta-*` scale is the raw palette; the docs' semantic colors below pick
+ * from it per theme.
+ */
 @theme inline {
+  --color-ta-sand-50: var(--ta-sand-50);
+  --color-ta-sand-100: var(--ta-sand-100);
+  --color-ta-sand-200: var(--ta-sand-200);
+  --color-ta-sand-300: var(--ta-sand-300);
+  --color-ta-sand-400: var(--ta-sand-400);
+  --color-ta-sand-500: var(--ta-sand-500);
+  --color-ta-grey-0: var(--ta-grey-0);
+  --color-ta-grey-50: var(--ta-grey-50);
+  --color-ta-grey-100: var(--ta-grey-100);
+  --color-ta-grey-200: var(--ta-grey-200);
+  --color-ta-grey-300: var(--ta-grey-300);
+  --color-ta-grey-400: var(--ta-grey-400);
+  --color-ta-grey-450: var(--ta-grey-450);
+  --color-ta-grey-500: var(--ta-grey-500);
+  --color-ta-orange-100: var(--ta-orange-100);
+  --color-ta-orange-200: var(--ta-orange-200);
+  --color-ta-orange-300: var(--ta-orange-300);
+  --color-ta-orange-400: var(--ta-orange-400);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-display: var(--font-stack-sans-notch), ui-sans-serif, system-ui, sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-border: var(--border);
+
+  /* Docs semantic colors */
+  --color-page: var(--docs-page);
+  --color-ink: var(--docs-ink);
+  --color-muted: var(--docs-muted);
+  --color-faint: var(--docs-faint);
+  --color-line: var(--docs-line);
+  --color-line-strong: var(--docs-line-strong);
+  --color-surface: var(--docs-surface);
+  --color-surface-raised: var(--docs-surface-raised);
+  --color-hover: var(--docs-hover);
+  --color-accent: var(--ta-orange-300);
+  --color-accent-ink: var(--docs-accent-ink);
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --ta-sand-50: rgb(249 248 247);
+  --ta-sand-100: rgb(230 228 220);
+  --ta-sand-200: rgb(220 216 206);
+  --ta-sand-300: rgb(195 188 170);
+  --ta-sand-400: rgb(137 132 119);
+  --ta-sand-500: rgb(88 85 76);
+  --ta-grey-0: rgb(255 255 255);
+  --ta-grey-50: rgb(232 232 232);
+  --ta-grey-100: rgb(206 206 206);
+  --ta-grey-200: rgb(159 159 159);
+  --ta-grey-300: rgb(120 120 120);
+  --ta-grey-400: rgb(78 78 78);
+  --ta-grey-450: rgb(30 30 30);
+  --ta-grey-500: rgb(22 22 22);
+  --ta-orange-100: rgb(255 181 108);
+  --ta-orange-200: rgb(255 150 44);
+  --ta-orange-300: rgb(255 128 1);
+  --ta-orange-400: rgb(156 78 1);
+
+  --background: var(--ta-grey-0);
+  --foreground: var(--ta-grey-500);
+  --border: var(--ta-grey-50);
+
+  /* Docs, light: the landing page's sand surface. */
+  --docs-page: var(--ta-sand-50);
+  --docs-ink: var(--ta-grey-500);
+  --docs-muted: rgb(82 80 74);
+  --docs-faint: rgb(124 120 110);
+  --docs-line: rgb(228 225 217);
+  --docs-line-strong: rgb(190 185 172);
+  --docs-surface: rgb(255 255 255);
+  --docs-surface-raised: rgb(243 241 236);
+  --docs-hover: rgb(238 235 228);
+  --docs-accent-ink: var(--ta-orange-400);
+  color-scheme: light;
+}
+
+/* Docs, dark: the landing page's #111 canvas. */
+.dark {
+  --docs-page: rgb(17 17 17);
+  --docs-ink: var(--ta-sand-50);
+  --docs-muted: rgb(178 178 178);
+  --docs-faint: rgb(128 128 128);
+  --docs-line: rgb(44 44 44);
+  --docs-line-strong: rgb(78 78 78);
+  --docs-surface: rgb(26 26 26);
+  --docs-surface-raised: rgb(30 30 30);
+  --docs-hover: rgb(34 34 34);
+  --docs-accent-ink: var(--ta-orange-100);
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    font-family: var(--font-sans);
+    /* `clip`, not `hidden`: hidden turns the root into a scroll container, which breaks sticky children in iOS Safari. */
+    overflow-x: clip;
+    scroll-behavior: smooth;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  @media screen and (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility type-h2 {
+  font-family: var(--font-stack-sans-notch), ui-sans-serif, system-ui, sans-serif;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 400;
+  letter-spacing: 0;
+
+  @media (min-width: 640px) {
+    font-size: 38px;
+    line-height: 46px;
+  }
+  @media (min-width: 1024px) {
+    font-size: 44px;
+    line-height: 52px;
+  }
+}
+
+@utility type-accent-s {
+  font-family: var(--font-dm-mono), ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ───────────────────────── Landing page (/e2e) ───────────────────────── */
+
+/* The landing page is dark-only, whatever the docs theme. */
+.ta-landing {
+  background-color: rgb(17 17 17);
+  color: var(--ta-sand-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --background: rgb(17 17 17);
+  --foreground: var(--ta-sand-50);
+  --border: var(--ta-grey-400);
+}
+
+html:has(.ta-landing),
+html:has(.ta-landing) body {
+  background-color: rgb(17 17 17);
+}
+
+.ta-e2e [data-reveal],
+.ta-e2e [data-reveal-slide] {
+  transform: translateY(14px);
+  transition: transform 0.5s ease-out;
+  transition-delay: calc(var(--reveal-i, 0) * 70ms);
+}
+
+/* data-reveal-slide leaves opacity to its owner (the why-e2e scroll spotlight). */
+.ta-e2e [data-reveal] {
+  opacity: 0;
+  transition-property: opacity, transform;
+}
+
+.ta-e2e [data-shown] [data-reveal],
+.ta-e2e [data-shown] [data-reveal-slide] {
+  transform: none;
+}
+
+.ta-e2e [data-shown] [data-reveal] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ta-e2e [data-reveal],
+  .ta-e2e [data-reveal-slide] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Travel distances match the parallax layer's negative insets, which differ per breakpoint. */
+@keyframes e2e-meadow-parallax {
+  from {
+    transform: translateY(var(--e2e-meadow-from, 392px));
+  }
+  to {
+    transform: translateY(var(--e2e-meadow-to, -180px));
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .e2e-meadow-band {
+    view-timeline: --e2e-meadow block;
+  }
+  .e2e-meadow-parallax {
+    animation: e2e-meadow-parallax linear both;
+    animation-timeline: --e2e-meadow;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e2e-meadow-parallax {
+    animation: none;
+  }
+}
+
+@keyframes e2e-line-flash {
+  from {
+    background-color: rgb(255 255 255 / 0.16);
+  }
+}
+
+@keyframes e2e-doc-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+@keyframes e2e-tab-fade {
+  from {
+    opacity: 0;
+  }
 }

@@ -19,6 +19,7 @@ allowBuilds:
   puppeteer: false
   sharp: false
   unrs-resolver: false
+  core-js: false
 
 overrides:
   'fast-uri@>=3.0.0 <3.1.8': 3.1.8

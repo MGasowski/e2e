@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# copied and generated from ../docs by scripts/sync-docs.mjs
+/public/docs/
+/components/docs/snippets/
+/lib/docs/paths.generated.json

@@ -24,14 +24,16 @@
     "packages/mobile/tests/types/options.ts",
     "packages/decision/tests/types/options.ts",
     "packages/e2e/tests/live/*.ts",
-    "packages/e2e/src/config/register.ts"
+    "packages/e2e/src/config/register.ts",
+    "website/components/docs/snippet-globals.tsx"
   ],
   "ignorePatterns": [
     "docs/**",
     "examples/**",
     "**/next-env.d.ts",
     "**/.e2e/**",
-    "packages/e2e/tests/tmp-projects/**"
+    "packages/e2e/tests/tmp-projects/**",
+    "website/components/docs/snippets/**"
   ],
   "ignoreDependencies": [
     "e2e",
