@@ -21,6 +21,11 @@ function toCalendarTimestamp(iso: string): string {
 const START = toCalendarTimestamp(INTRO_SESSION.startsAt);
 const END = toCalendarTimestamp(INTRO_SESSION.endsAt);
 
+/** RFC 5545 TEXT escaping: backslash first, then the separators and line breaks. */
+function escapeText(text: string): string {
+  return text.replace(/\\/g, "\\\\").replace(/([;,])/g, "\\$1").replace(/\n/g, "\\n");
+}
+
 /** RFC 5545 caps content lines at 75 octets; longer ones continue after CRLF + space. */
 function foldLine(line: string): string {
   const parts: string[] = [];
@@ -46,7 +51,7 @@ export const CALENDAR_INVITE = [
   `DTSTART:${START}`,
   `DTEND:${END}`,
   `SUMMARY:${CALENDAR_EVENT_TITLE}`,
-  `DESCRIPTION:${CALENDAR_EVENT_DETAILS.replace(/,/g, "\\,")}`,
+  `DESCRIPTION:${escapeText(CALENDAR_EVENT_DETAILS)}`,
   `LOCATION:${INTRO_SESSION.watchUrl}`,
   `URL:${SITE_URL}${INTRO_SESSION.path}`,
   "BEGIN:VALARM",
