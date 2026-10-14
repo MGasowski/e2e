@@ -40,10 +40,17 @@ e2e init`; `npx e2e init my-app` scaffolds into a new directory.
 
 The wizard picks an engine and a model provider (None for tests without AI)
 and offers to install this skill, register the MCP server for your coding
-agent, and install dependencies. `--yes` picks Playwright and Vercel AI
+agent, and install dependencies. `--yes` picks the web engine (Playwright) and Vercel AI
 Gateway, installs the skill in `.agents/skills/` (`.claude/skills/e2e`
 symlinks to it), registers MCP in `.mcp.json` and `.cursor/mcp.json`, skips
-installing dependencies.
+installing dependencies. A flag per question overrides one default:
+`--engine`, `--gateway`, `--endpoint`, `--skills`, `--mcp` (comma-separated
+locations, or `none`), `--install`; `npx e2e init --help` lists the values.
+
+The wizard needs a terminal: without one, `init` exits with code 2. From an
+agent's shell, run `npx e2e init --yes` when its defaults fit and install the
+dependencies after it, or install by hand (below). Neither registers the MCP
+server for Codex (topic `mcp`).
 
 Init adds dependencies and a `test:e2e` script to `package.json`, writes
 `e2e.config.ts` and `tests/example.e2e.ts`, updates `.gitignore`, leaves
@@ -91,9 +98,9 @@ Switching to OpenCode Console: install `ai`, `@ai-sdk/openai-compatible`,
 `npx e2e login opencode-console`. A bare id is an OpenCode Zen model; a `go/` id
 (`go/deepseek-v4.1-flash`) is an OpenCode Go model and needs an OpenCode Go
 subscription: the workspace's through the login, or yours through
-`OPENCODE_API_KEY`. `npx e2e models opencode-console` lists
-the ids, tagged Zen or Go. In CI, set a Console service account API key or an OpenCode Go
-subscription API key as `OPENCODE_API_KEY`.
+`OPENCODE_API_KEY`. `npx e2e models opencode-console` lists the ids, tagged
+Zen or Go, through the key when it is set. In CI, set a Console service account
+API key or an OpenCode Go subscription API key as `OPENCODE_API_KEY`.
 
 ## The config
 
@@ -174,7 +181,7 @@ target's `app`:
 | `bundleId` | Device targets: the bundle id, package name, or display name (`Settings`) `app.open()` launches. |
 | `appPath` | Device targets: the `.app` or `.apk` under test. A device target needs `bundleId` or `appPath`. |
 | `launchArguments`, `permissions` | Device targets: arguments and permission states (`grant`, `deny`, `reset`) every fresh launch gets. |
-| `command` | The process serving `url`: `{ executable, args, cwd, env, startupTimeout, shutdownTimeout, log, reuseExisting }`; `{port}` in `args` and `env` expands to `url`'s port. Targets declaring the same command share one process. |
+| `command` | The process serving `url`: `{ executable, args, cwd, env, inheritEnv, startupTimeout, shutdownTimeout, log, reuseExisting }`; `{port}` in `args` and `env` expands to `url`'s port. Targets declaring the same command share one process. |
 | `readyUrl` | Readiness probe when it differs from `url`; `{port}` expands too. |
 | `environment` | `'test'`, `'staging'`, `'production'`; inferred from the host, labels the report and cache key. |
 | `identity` | Stable identity for cache and session keys when the origin changes per deploy (preview URLs). Defaults to the URL's origin and path, else `bundleId`, else `appPath`. |
@@ -201,6 +208,7 @@ start a script that brings them up and serves the app.
 | `basicAuth` | `{ username, password }` for a `401` challenge; `password` may be `secrets.get('name')`, resolved per attempt and redacted like any secret, the base64 `Authorization` credential too. |
 | `userAgent` | The `User-Agent` every attempt sends and `navigator.userAgent` reports. |
 | `locale`, `timezoneId` | The language (`'de-DE'`: `navigator.language`, `Intl`, `Accept-Language`) and IANA time zone (`'Europe/Berlin'`) every attempt runs in. |
+| `colorScheme`, `reducedMotion` | The `prefers-color-scheme` (`'light'`, `'dark'`, `'no-preference'`) and `prefers-reduced-motion` (`'reduce'`, `'no-preference'`) every page reports to its `@media` rules and `matchMedia`, from first paint. |
 | `initScripts` | Scripts every document runs before the page's own: source, `{ path }`, or a function with no closures. |
 | `testIdAttribute` | What `getByTestId` reads; default `data-testid`. |
 | `screencast` | `{ size?, quality? }` for the engine's own video: frame size (default the viewport's), JPEG quality 0 to 100. |
@@ -253,8 +261,10 @@ app: {
   last run's report and results as they were (`command.log` still gets this
   boot's output).
 - The child gets only `PATH`, `HOME`, the temp-directory variables,
-  `SystemRoot` and `COMSPEC` on Windows, and `command.env`; pass the rest
-  through `env`. Model keys and `E2E_USER_*` values are never inherited.
+  `SystemRoot` and `COMSPEC` on Windows, and `command.env`. Pass the rest
+  through `env`, or name host variables in `inheritEnv` (`['DATABASE_URL',
+  'STRIPE_*']`); `env` wins over them. Model keys and `E2E_USER_*` values
+  are never inherited unless an `inheritEnv` name or prefix matches them.
 - Output is discarded unless `log` names a file under an ignored directory
   such as `.e2e/logs/`; without it a server dying on boot is invisible.
 - A `url` answering before the spawn is `APP_ALREADY_RUNNING`;
@@ -348,8 +358,8 @@ export default {
 - `limrun()` from `@e2e-dev/limrun` leases one device per worker and installs
   `app.appPath` before tests. Set `LIMRUN_API_KEY`; install `@limrun/api` and
   matching `agent-device` peers. Android needs `adb` on `PATH` for its tunnel.
-  With agent-device 0.21.22, iOS keyboard actions such as `locator.press('Enter')`
-  return `UNSUPPORTED_CAPABILITY`; tap an app button when available.
+  iOS keyboard actions such as `locator.press('Enter')` return
+  `UNSUPPORTED_CAPABILITY`; tap an app button when available.
   See `examples/with-limrun` for the same form and restart tests on both platforms.
 - Only a control that appeared or moved with the previous action waits out
   `transition` (default 500 ms); agent actions settle `settle` ms (default
