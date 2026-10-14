@@ -21,6 +21,10 @@ pnpm --filter @e2e-dev/website build
 - **Mintlify's components** (`Card`, `CardGroup`, `CodeGroup`, `Tabs`, `Steps`,
   `Accordion`, `Note`, `Warning`, `Prompt`, …) are in `components/docs/mdx/`,
   mapped to their tags in `components/docs/mdx/index.tsx`.
+- **The docs look as they did on Mintlify** (`mint dev` in `docs/`): the
+  palette, Geist type, and layout of `docs/docs.json` and `docs/style.css`,
+  rebuilt in `app/docs/docs.css` with the colors as `--docs-*` tokens in
+  `app/globals.css`. Compare against `mint dev` when you change either.
 - **The docs snippets** (`docs/snippets/*.jsx`) are copied into
   `components/docs/snippets/` by `scripts/sync-docs.mjs`, which `dev` and
   `build` run first, with the React imports Mintlify supplies as globals.

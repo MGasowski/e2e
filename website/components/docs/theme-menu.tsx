@@ -8,9 +8,9 @@ import { onMenuKeyDown, useDismiss } from "./use-dismiss";
 type Theme = "light" | "dark" | "system";
 
 const OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+  { value: "system", label: "System", icon: Monitor },
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
 ];
 
 const EVENT = "e2e-docs-theme";
@@ -78,11 +78,13 @@ export function ThemeMenu({ className }: { className?: string }) {
         onClick={() => setOpen(!open)}
         className="docs-icon-button"
       >
-        <Sun aria-hidden="true" className="size-4 dark:hidden" strokeWidth={1.6} />
-        <Moon aria-hidden="true" className="hidden size-4 dark:block" strokeWidth={1.6} />
+        {/* The chosen preference, as Mintlify shows it: a sun, a moon, or the system's screen. */}
+        {theme === "light" && <Sun aria-hidden="true" className="size-4" strokeWidth={1.6} />}
+        {theme === "dark" && <Moon aria-hidden="true" className="size-4" strokeWidth={1.6} />}
+        {theme === "system" && <Monitor aria-hidden="true" className="size-4" strokeWidth={1.6} />}
       </button>
       {open && (
-        <div role="menu" aria-label="Theme" className="docs-menu right-0 w-40" onKeyDown={onMenuKeyDown}>
+        <div role="menu" aria-label="Theme" className="docs-menu docs-theme-menu right-0 w-32" onKeyDown={onMenuKeyDown}>
           {OPTIONS.map(({ value, label, icon: Icon }) => (
             <button
               key={value}
@@ -101,6 +103,20 @@ export function ThemeMenu({ className }: { className?: string }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/** The three choices side by side, as Mintlify's navigation drawer shows them. */
+export function ThemeSwitch() {
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "system" as Theme);
+  return (
+    <div role="group" aria-label="Theme" className="docs-theme-switch">
+      {OPTIONS.map(({ value, label, icon: Icon }) => (
+        <button key={value} type="button" aria-label={label} aria-pressed={theme === value} onClick={() => setTheme(value)}>
+          <Icon aria-hidden="true" className="size-4" strokeWidth={1.6} />
+        </button>
+      ))}
     </div>
   );
 }

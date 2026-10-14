@@ -1,11 +1,11 @@
-import { ArrowRight, ArrowUpRight, CircleAlert, Info, Lightbulb, Link2, TriangleAlert } from "lucide-react";
+import { ArrowUpRight, ChevronRight, CircleAlert, Info, Lightbulb, Link2, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { DocsIcon } from "../icon";
 
 const CALLOUTS = {
-  Note: { icon: Info, className: "is-note" },
+  Note: { icon: CircleAlert, className: "is-note" },
   Info: { icon: Info, className: "is-note" },
   Tip: { icon: Lightbulb, className: "is-tip" },
   Warning: { icon: TriangleAlert, className: "is-warning" },
@@ -17,7 +17,7 @@ function callout(kind: keyof typeof CALLOUTS) {
   function Callout({ children }: { children: ReactNode }) {
     return (
       <div className={cn("docs-callout", className)} data-callout={kind.toLowerCase()}>
-        <Icon aria-hidden="true" className="docs-callout-icon size-4" strokeWidth={1.6} />
+        <Icon aria-hidden="true" className="docs-callout-icon" strokeWidth={kind === "Warning" ? 1.5 : 2} />
         <div className="docs-callout-body">{children}</div>
       </div>
     );
@@ -78,12 +78,12 @@ export function Card({
       {cta && (
         <span className="docs-card-cta">
           {cta}
-          {arrow && <ArrowRight aria-hidden="true" className="size-3.5" strokeWidth={1.6} />}
+          {arrow && <ChevronRight aria-hidden="true" className="size-3.5" strokeWidth={1.6} />}
         </span>
       )}
-      {href && !cta && (
+      {external && (
         <span className="docs-card-arrow" aria-hidden="true">
-          {external ? <ArrowUpRight className="size-4" strokeWidth={1.6} /> : <ArrowRight className="size-4" strokeWidth={1.6} />}
+          <ArrowUpRight className="size-4" strokeWidth={1.6} />
         </span>
       )}
     </>

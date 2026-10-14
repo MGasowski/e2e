@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { DocsIcon } from "./icon";
 import { locate, type NavTab } from "./nav";
 import { Search } from "./search";
-import { ThemeMenu } from "./theme-menu";
+import { ThemeMenu, ThemeSwitch } from "./theme-menu";
 
 const GITHUB_URL = "https://github.com/tester-army/e2e";
 
@@ -21,6 +21,24 @@ function Logo() {
       <Image src="/docs/logo-black.png" alt="" width={266} height={84} priority className="h-7 w-auto dark:hidden" />
       <Image src="/docs/logo-white.png" alt="" width={266} height={84} priority className="hidden h-7 w-auto dark:block" />
     </Link>
+  );
+}
+
+/** The tabs in the navigation drawer: the current one, opening onto the others. */
+function TabPicker({ nav, current, onNavigate }: { nav: NavTab[]; current: NavTab; onNavigate: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="docs-sidebar-tabs">
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="docs-tab-picker">
+        <span>{current.name}</span>
+        <ChevronDown aria-hidden="true" className="size-4" strokeWidth={1.6} />
+      </button>
+      {open && (
+        <div className="docs-tab-picker-list">
+          <TabLinks nav={nav} current={current} onNavigate={onNavigate} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -58,10 +76,13 @@ function Promo({ promo, className }: { promo?: { label: string; href: string }; 
 export function DocsShell({
   nav,
   promo,
+  github,
   children,
 }: {
   nav: NavTab[];
   promo?: { label: string; href: string };
+  /** The navbar's GitHub link, rendered on the server for its star count. */
+  github: ReactNode;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -96,10 +117,7 @@ export function DocsShell({
             <Search />
           </div>
           <div className="docs-header-actions">
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="docs-github-link">
-              <GithubIcon aria-hidden="true" className="size-4" />
-              <span>GitHub</span>
-            </a>
+            {github}
             <ThemeMenu />
           </div>
         </div>
@@ -131,12 +149,15 @@ export function DocsShell({
 
       <div className="docs-body">
         <nav id="sidebar" aria-label="Docs" className="docs-sidebar" data-open={menuOpen ? "" : undefined}>
-          <div className="docs-sidebar-tabs">
-            <TabLinks nav={nav} current={tab} onNavigate={closeMenu} />
+          <div className="docs-drawer-head">
+            <Logo />
+            <ThemeSwitch />
           </div>
+          <TabPicker key={pathname} nav={nav} current={tab} onNavigate={closeMenu} />
           {tab.groups.map((navGroup) => (
             <div key={navGroup.name} className="docs-sidebar-group">
-              <p className="docs-sidebar-heading">{navGroup.name}</p>
+              {/* A tab of bare pages has no group name to show, as on Mintlify. */}
+              {navGroup.name !== tab.name && <p className="docs-sidebar-heading">{navGroup.name}</p>}
               <ul>
                 {navGroup.pages.map((navPage) => {
                   const current = navPage === page;
@@ -165,7 +186,14 @@ export function DocsShell({
             <Promo promo={promo} />
           </div>
         </nav>
-        {menuOpen && <div aria-hidden="true" className="docs-scrim" onClick={closeMenu} />}
+        {menuOpen && (
+          <>
+            <div aria-hidden="true" className="docs-scrim" onClick={closeMenu} />
+            <button type="button" aria-label="Close navigation" className="docs-drawer-close" onClick={closeMenu}>
+              <X aria-hidden="true" className="size-[18px]" strokeWidth={1.6} />
+            </button>
+          </>
+        )}
         <div className="docs-main">{children}</div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GithubLink } from "@/components/docs/github-link";
 import { DocsShell } from "@/components/docs/shell";
 import { navigation, promo } from "@/lib/docs/navigation";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/docs/source";
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function DocsLayout({ children }: LayoutProps<"/docs">) {
   return (
-    <DocsShell nav={navigation()} promo={promo()}>
+    <DocsShell nav={navigation()} promo={promo()} github={<GithubLink />}>
       {children}
     </DocsShell>
   );

@@ -4,6 +4,7 @@ import { cacheLife } from "next/cache";
 import * as runtime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
 import { remarkDocs, type TocEntry } from "./remark-docs";
+import { remarkSmartQuotes } from "./smart-quotes";
 import { readPageSource } from "./source";
 
 /**
@@ -17,7 +18,7 @@ async function compilePage(source: string): Promise<{ code: string; toc: TocEntr
   const { body } = readPageSource(source);
   const file = await compile(
     { value: body, path: `docs/${source}.mdx` },
-    { outputFormat: "function-body", remarkPlugins: [remarkGfm, remarkDocs] },
+    { outputFormat: "function-body", remarkPlugins: [remarkGfm, remarkSmartQuotes, remarkDocs] },
   );
   return { code: String(file), toc: file.data.toc ?? [] };
 }

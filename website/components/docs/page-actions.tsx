@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Copy, FileText } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Copy } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { SiClaude, SiOpenai } from "react-icons/si";
 import { analytics, analyticsEvents } from "@/lib/analytics";
@@ -13,38 +13,58 @@ const brand = (src: string) => <img src={src} alt="" aria-hidden="true" classNam
 const ask = (url: string) => `Read this documentation page, so I can ask questions about it:\n\n${url}`;
 
 /** Where the menu sends a reader to ask an AI tool about the page (Mintlify's contextual menu, as `docs.json` set it). */
-const TOOLS: { label: string; description: string; icon: ReactNode; href: (url: string) => string }[] = [
+const TOOLS: { label: string; icon: ReactNode; external: boolean; href: (url: string) => string }[] = [
   {
     label: "Open in ChatGPT",
-    description: "Ask questions about this page",
     icon: <SiOpenai aria-hidden="true" className="size-4" />,
+    external: true,
     href: (url) => `https://chatgpt.com/?hints=search&q=${encodeURIComponent(ask(url))}`,
   },
   {
-    label: "Open in Claude",
-    description: "Ask questions about this page",
-    icon: <SiClaude aria-hidden="true" className="size-4" />,
-    href: (url) => `https://claude.ai/new?q=${encodeURIComponent(ask(url))}`,
-  },
-  {
     label: "Open in Codex",
-    description: "Ask Codex about this page",
     icon: brand("/docs/images/contextual/codex.svg"),
+    external: false,
     href: (url) => `codex://new?prompt=${encodeURIComponent(ask(url))}`,
   },
   {
+    label: "Open in Claude",
+    icon: <SiClaude aria-hidden="true" className="size-4" />,
+    external: true,
+    href: (url) => `https://claude.ai/new?q=${encodeURIComponent(ask(url))}`,
+  },
+  {
     label: "Open in Claude Code",
-    description: "Ask Claude Code about this page",
     icon: brand("/docs/images/contextual/claude-code.svg"),
+    external: false,
     href: (url) => `claude-cli://open?q=${encodeURIComponent(ask(url))}`,
   },
   {
     label: "Open in Cursor",
-    description: "Ask Cursor about this page",
     icon: brand("/docs/images/contextual/cursor.svg"),
+    external: true,
     href: (url) => `https://cursor.com/link/prompt?text=${encodeURIComponent(ask(url))}`,
   },
 ];
+
+/** Mintlify's Markdown mark: an M and a down arrow in a rounded frame. */
+function MarkdownIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="size-4">
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M6 15V9l3 3 3-3v6M17 9v6m-2.5-2.5L17 15l2.5-2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MenuItemContent({ icon, label, external }: { icon: ReactNode; label: string; external?: boolean }) {
+  return (
+    <>
+      <span className="docs-menu-icon">{icon}</span>
+      <span>{label}</span>
+      {external && <ArrowUpRight aria-hidden="true" className="docs-menu-external size-3" strokeWidth={1.6} />}
+    </>
+  );
+}
 
 const fetched = new Map<string, Promise<string>>();
 
@@ -96,47 +116,35 @@ export function PageActions({ markdownPath, markdownUrl }: { markdownPath: strin
         className="docs-page-actions-more"
         onClick={() => setOpen(!open)}
       >
-        <ChevronDown aria-hidden="true" className="size-3.5" strokeWidth={1.6} />
+        <ChevronDown aria-hidden="true" className="docs-page-actions-chevron size-3.5" strokeWidth={1.6} />
       </button>
       {open && (
-        <div role="menu" aria-label="Page actions" className="docs-menu right-0 w-72" onKeyDown={onMenuKeyDown}>
+        <div role="menu" aria-label="Page actions" className="docs-menu docs-page-menu right-0" onKeyDown={onMenuKeyDown}>
           <button
             type="button"
             role="menuitem"
-            className="docs-menu-item is-rich"
+            className="docs-menu-item"
             onClick={() => {
               copyPage();
               close();
             }}
           >
-            <Copy aria-hidden="true" className="size-4" strokeWidth={1.6} />
-            <span className="flex flex-col">
-              <span>Copy page</span>
-              <span className="docs-menu-item-description">Copy the page as markdown for LLMs</span>
-            </span>
+            <MenuItemContent icon={<Copy aria-hidden="true" className="size-4" strokeWidth={1.5} />} label="Copy page" />
           </button>
-          <a role="menuitem" className="docs-menu-item is-rich" href={markdownPath} target="_blank" rel="noreferrer" onClick={close}>
-            <FileText aria-hidden="true" className="size-4" strokeWidth={1.6} />
-            <span className="flex flex-col">
-              <span>View as Markdown</span>
-              <span className="docs-menu-item-description">View this page as plain text</span>
-            </span>
+          <a role="menuitem" className="docs-menu-item" href={markdownPath} target="_blank" rel="noreferrer" onClick={close}>
+            <MenuItemContent icon={<MarkdownIcon />} label="View as Markdown" external />
           </a>
           {TOOLS.map((tool) => (
             <a
               key={tool.label}
               role="menuitem"
-              className="docs-menu-item is-rich"
+              className="docs-menu-item"
               href={tool.href(markdownUrl)}
               target="_blank"
               rel="noreferrer"
               onClick={close}
             >
-              {tool.icon}
-              <span className="flex flex-col">
-                <span>{tool.label}</span>
-                <span className="docs-menu-item-description">{tool.description}</span>
-              </span>
+              <MenuItemContent icon={tool.icon} label={tool.label} external={tool.external} />
             </a>
           ))}
         </div>

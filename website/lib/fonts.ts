@@ -23,4 +23,19 @@ const dmMono = localFont({
   display: "swap",
 });
 
-export const fontVariables = `${inter.variable} ${stackSansNotch.variable} ${dmMono.variable}`;
+/** The docs' type, as on Mintlify (`fonts` in docs/docs.json, Geist Mono in docs/style.css). */
+const geist = localFont({
+  src: "../public/fonts/geist-latin-wght-normal.woff2",
+  variable: "--font-geist",
+  weight: "100 900",
+  display: "swap",
+});
+
+const geistMono = localFont({
+  src: "../public/fonts/geist-mono-latin-wght-normal.woff2",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+  display: "swap",
+});
+
+export const fontVariables = `${inter.variable} ${stackSansNotch.variable} ${dmMono.variable} ${geist.variable} ${geistMono.variable}`;

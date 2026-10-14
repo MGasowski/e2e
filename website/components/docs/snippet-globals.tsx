@@ -46,7 +46,7 @@ export function CodeBlock({ language, children }: { language: string; children: 
   }, [children, language]);
   return (
     <div className="code-block not-prose" data-language={language} data-grouped="">
-      <CopyCodeButton code={children} className="absolute right-2 top-2 z-10 bg-surface" />
+      <CopyCodeButton code={children} className="code-copy absolute right-2 top-2 z-10" />
       {html ? (
         <div className="code-body" dangerouslySetInnerHTML={{ __html: html }} />
       ) : (

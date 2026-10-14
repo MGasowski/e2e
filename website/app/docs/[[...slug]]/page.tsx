@@ -1,5 +1,6 @@
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { mdxComponents } from "@/components/docs/mdx";
@@ -44,16 +45,13 @@ export async function generateMetadata({ params }: PageProps<"/docs/[[...slug]]"
 }
 
 function PagerLink({ page, direction }: { page: DocsPageMeta | undefined; direction: "Previous" | "Next" }) {
-  if (!page) return <span />;
-  const Arrow = direction === "Previous" ? ArrowLeft : ArrowRight;
+  if (!page) return null;
+  const Arrow = direction === "Previous" ? ChevronLeft : ChevronRight;
   return (
     <Link href={docsPath(page.slug)} aria-label={`${direction}: ${navLabel(page)}`} className="docs-pager-link" data-direction={direction.toLowerCase()}>
-      <span className="docs-pager-label">
-        {direction === "Previous" && <Arrow aria-hidden="true" className="size-3.5" />}
-        {direction}
-        {direction === "Next" && <Arrow aria-hidden="true" className="size-3.5" />}
-      </span>
-      <span className="docs-pager-title">{navLabel(page)}</span>
+      {direction === "Previous" && <Arrow aria-hidden="true" className="docs-pager-arrow size-3" />}
+      <span>{navLabel(page)}</span>
+      {direction === "Next" && <Arrow aria-hidden="true" className="docs-pager-arrow size-3" />}
     </Link>
   );
 }
@@ -98,11 +96,13 @@ export default async function DocsPage({ params }: PageProps<"/docs/[[...slug]]"
         )}
         <footer className="docs-footer">
           <a href={socials.github} target="_blank" rel="noreferrer" aria-label="e2e on GitHub" className="docs-footer-social">
-            <GithubIcon aria-hidden="true" className="size-4" />
+            <GithubIcon aria-hidden="true" className="size-5" />
           </a>
           {socials.website && (
-            <a href={socials.website} target="_blank" rel="noreferrer" className="docs-footer-built">
-              Built by <span className="docs-footer-brand">TesterArmy</span>
+            <a href={socials.website} target="_blank" rel="noreferrer" aria-label="Built by TesterArmy" className="docs-footer-built">
+              Built by
+              <Image src="/docs/images/footer/testerarmy-mark.png" alt="" width={70} height={64} className="docs-footer-mark" />
+              <span aria-hidden="true" className="docs-footer-wordmark" />
             </a>
           )}
         </footer>

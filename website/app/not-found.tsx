@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GithubLink } from "@/components/docs/github-link";
 import { NotFoundContent } from "@/components/docs/not-found-content";
 import { DocsShell } from "@/components/docs/shell";
 import { navigation, promo } from "@/lib/docs/navigation";
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: "Page not found - e2e", robots: { ind
 /** Every unknown path, docs or not (`proxy.ts` sends unknown docs paths here), inside the docs frame. */
 export default function NotFound() {
   return (
-    <DocsShell nav={navigation()} promo={promo()}>
+    <DocsShell nav={navigation()} promo={promo()} github={<GithubLink />}>
       <NotFoundContent />
     </DocsShell>
   );

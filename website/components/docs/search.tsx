@@ -2,12 +2,10 @@
 
 import { CornerDownLeft, FileText, Hash, Search as SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { analytics, analyticsEvents } from "@/lib/analytics";
 import type { SearchEntry } from "@/lib/docs/feeds";
 import { cn } from "@/lib/utils";
-
-const noSubscribe = () => () => {};
 
 let index: Promise<SearchEntry[]> | undefined;
 
@@ -75,11 +73,6 @@ export function Search() {
   const [query, setQuery] = useState("");
   const [entries, setEntries] = useState<SearchEntry[]>([]);
   const [active, setActive] = useState(0);
-  const shortcut = useSyncExternalStore(
-    noSubscribe,
-    () => (/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K"),
-    () => "Ctrl K",
-  );
 
   const results = useMemo(() => rank(entries, query), [entries, query]);
 
@@ -119,7 +112,7 @@ export function Search() {
       <button type="button" aria-label="Open search" onClick={open} className="docs-search-trigger">
         <SearchIcon aria-hidden="true" className="size-4 shrink-0" strokeWidth={1.6} />
         <span className="docs-search-placeholder">Search…</span>
-        <kbd className="docs-search-kbd">{shortcut}</kbd>
+        <kbd className="docs-search-kbd">⌘K</kbd>
       </button>
       <dialog
         ref={dialog}

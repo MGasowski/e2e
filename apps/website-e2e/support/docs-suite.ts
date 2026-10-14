@@ -108,7 +108,9 @@ export const docsMask = (browser: Browser) => [
 /**
  * Mintlify's floating "Ask a question" assistant bar is the service's, not
  * the page's, and website/ will not have it; it is hidden before every
- * screenshot so the comparison covers the page alone.
+ * screenshot so the comparison covers the page alone. The navbar's live
+ * GitHub star count changes from day to day, and a build without GitHub
+ * access renders the link without it, so it is removed too.
  */
 async function hideDocsChrome(browser: Browser) {
   await browser.evaluate(() => {
@@ -116,6 +118,7 @@ async function hideDocsChrome(browser: Browser) {
     let floating: HTMLElement | null = ask instanceof HTMLElement ? ask : null;
     while (floating && getComputedStyle(floating).position !== 'fixed') floating = floating.parentElement;
     if (floating) floating.style.setProperty('display', 'none', 'important');
+    for (const stars of document.querySelectorAll<HTMLElement>('[data-github-stars]')) stars.style.setProperty('display', 'none', 'important');
     return null;
   });
 }
