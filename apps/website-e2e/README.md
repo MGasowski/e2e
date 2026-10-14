@@ -18,7 +18,8 @@ sites showed and did; `website/` now passes them.
 - `tests/landing/`: the landing page. Functional tests cover the metadata,
   header, hero, terminal tabs and hover docs, every configurator path
   (with the exact config each one copies), testimonials, FAQ, footer, the
-  mobile menu, and the markdown twin agents fetch. `visual-sections` compares
+  mobile menu, the markdown twin agents fetch, and the live-session pages
+  under `/e2e/sessions` (`sessions`). `visual-sections` compares
   every section; `visual-states` compares the page after each interaction.
 - `tests/docs/`: the docs.
   - `pages-*`: one test per page. Each checks the title, description, every
@@ -78,7 +79,7 @@ at every changed image before committing it. Diffs land in `.linux/.e2e/results/
 What the comparisons hold still:
 - Reduced motion is forced, videos stop on their first frame, and the
   landing page's particle canvases are hidden.
-- The live GitHub star count is removed; videos, the YouTube thumbnail, and
+- The live GitHub star count and the live-session banner are removed; videos, the YouTube thumbnail, and
   the docs promo card are masked.
 - Third-party scripts are blocked, the theme is pinned, and the cookie banner
   is answered before it shows.

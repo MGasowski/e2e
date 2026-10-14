@@ -69,7 +69,7 @@ describe('landing page', { tags: ['landing'] }, () => {
     await expectCopied(browser, links.initCommand);
   });
 
-  test('the header links home, to the docs, Discord, and the GitHub repo with its stars', async ({ browser, screen }) => {
+  test('the header links home, to the sessions, the docs, Discord, and the GitHub repo with its stars', async ({ browser, screen }) => {
     const header = screen.getByRole('banner');
     // `/` on tester.army; the absolute address on website/, where `/` is the docs.
     await expect(header.getByRole('link', { name: 'TesterArmy home' })).toHaveAttribute('href', /^(\/|https:\/\/tester\.army\/?)$/);
@@ -80,7 +80,8 @@ describe('landing page', { tags: ['landing'] }, () => {
     await expect(stars).toHaveAttribute('target', '_blank');
     await expect(stars).toHaveAccessibleName(/^e2e on GitHub(, [\d,]+ stars)?$/);
 
-    test.skip((await viewportWidth(browser)) < 640, 'the docs and community links move into the menu below 640px');
+    test.skip((await viewportWidth(browser)) < 640, 'the sessions, docs, and community links move into the menu below 640px');
+    await expect(header.getByRole('link', { name: 'sessions', exact: true })).toHaveAttribute('href', '/e2e/sessions');
     const docsLink = header.getByRole('link', { name: 'docs', exact: true });
     await expect(docsLink).toHaveAttribute('href', links.docs);
     await expect(docsLink).toHaveAttribute('target', '_blank');
@@ -100,6 +101,7 @@ describe('landing page', { tags: ['landing'] }, () => {
       [/^Getting started$/i, links.docs],
       [/^Examples$/i, `${links.docs}/browser`],
       [/^Documentation$/i, links.docs],
+      [/^Sessions$/i, '/e2e/sessions'],
       [/^Changelog$/i, links.changelog],
       [/^GitHub$/i, links.github],
       [/^Discord$/i, '/discord'],

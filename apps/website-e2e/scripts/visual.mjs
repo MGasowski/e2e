@@ -22,7 +22,7 @@ const app = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repo = path.resolve(app, '../..');
 const args = ['run', '--tag', 'visual', ...process.argv.slice(2)];
 // Keep in step with playwright-core in packages/web/package.json.
-const image = 'mcr.microsoft.com/playwright:v1.63.0-noble';
+const image = 'mcr.microsoft.com/playwright:v1.64.0-noble';
 
 function exit(child) {
   child.on('exit', (code, signal) => process.exit(signal ? 1 : (code ?? 1)));

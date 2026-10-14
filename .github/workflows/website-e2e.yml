@@ -90,7 +90,7 @@ jobs:
   # Keep the tag in step with playwright-core in packages/web/package.json.
   visual:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    container: mcr.microsoft.com/playwright:v1.63.0-noble
+    container: mcr.microsoft.com/playwright:v1.64.0-noble
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
