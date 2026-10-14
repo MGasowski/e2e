@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { mountFireflyScene } from "./firefly-scene";
+import { type FireflySceneOptions, mountFireflyScene } from "./firefly-scene";
 
 /**
  * Interactive particle background for /e2e, ported from the Paper-designed
@@ -9,14 +9,14 @@ import { mountFireflyScene } from "./firefly-scene";
  * squares floating on ink, the cursor repels them, and single grains
  * continuously drift upward. Covers the nearest positioned ancestor.
  */
-export function FireflyCanvas() {
+export function FireflyCanvas({ density, rainPerSecond }: FireflySceneOptions = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    return mountFireflyScene(canvas);
-  }, []);
+    return mountFireflyScene(canvas, { density, rainPerSecond });
+  }, [density, rainPerSecond]);
 
   return (
     <canvas

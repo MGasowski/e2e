@@ -38,6 +38,12 @@ export function E2eHeader() {
           </Link>
         </nav>
         <div className="flex items-center gap-4 sm:gap-6">
+          <Link
+            href="/e2e/sessions"
+            className="hidden font-mono text-base uppercase text-white/90 transition-colors hover:text-white sm:block"
+          >
+            sessions
+          </Link>
           <a
             href={E2E_DOCS_URL}
             target="_blank"

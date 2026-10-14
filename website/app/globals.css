@@ -26,6 +26,7 @@
   --color-ta-orange-200: var(--ta-orange-200);
   --color-ta-orange-300: var(--ta-orange-300);
   --color-ta-orange-400: var(--ta-orange-400);
+  --color-ta-red-300: var(--ta-red-300);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-dm-mono), ui-monospace, monospace;
@@ -74,6 +75,8 @@
   --ta-orange-200: rgb(255 150 44);
   --ta-orange-300: rgb(255 128 1);
   --ta-orange-400: rgb(156 78 1);
+  /* The live-session dot on the sessions pages (the app's red/R300 on dark). */
+  --ta-red-300: rgb(209 89 85);
 
   --background: var(--ta-grey-0);
   --foreground: var(--ta-grey-500);

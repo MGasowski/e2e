@@ -9,3 +9,10 @@ export const E2E_SKILL_COMMAND = "npx skills add tester-army/e2e";
 
 /** The Tester Army site, home of the header's logo link. */
 export const TESTER_ARMY_URL = "https://tester.army";
+
+/**
+ * Sign-up for the live session. Registration needs the Tester Army app's
+ * backend (Loops, rate limits), so this site's session page sends visitors to
+ * the app's copy of the page, which holds the form.
+ */
+export const SESSION_SIGNUP_URL = `${TESTER_ARMY_URL}/e2e/sessions/intro-to-e2e`;

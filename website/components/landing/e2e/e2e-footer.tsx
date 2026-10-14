@@ -29,6 +29,7 @@ const FOOTER_COLUMNS: {
     className: "md:w-[247px]",
     links: [
       { label: "Documentation", href: E2E_DOCS_URL },
+      { label: "Sessions", href: "/e2e/sessions" },
       { label: "Changelog", href: `${E2E_GITHUB_URL}/blob/main/packages/e2e/CHANGELOG.md` },
     ],
   },

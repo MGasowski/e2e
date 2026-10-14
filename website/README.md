@@ -33,13 +33,18 @@ pnpm --filter @e2e-dev/website build
 - **The landing page** is `components/landing/e2e/`, ported from the Tester
   Army app (`apps/website/components/landing/e2e`), with its analytics on the
   docs' PostHog project and the GitHub star count fetched without the app's
-  GitHub App. Keep it in step with the app's `main`.
+  GitHub App. Keep it in step with the app's `main`. The live-session pages
+  (`components/landing/e2e/sessions/`) come with it, except the sign-up:
+  saving a seat needs the app's backend (Loops, rate limits), so "Save my
+  seat" on the session page opens the app's copy of it (`SESSION_SIGNUP_URL`
+  in `links.ts`), which holds the email form.
 
 ## What the site serves
 
 | Path | |
 |---|---|
 | `/e2e` | The landing page. `/e2e.md` is its markdown twin. |
+| `/e2e/sessions`, `/e2e/sessions/intro-to-e2e` | Live sessions and recordings, and the live session's page. `…/invite.ics` is its calendar file. |
 | `/docs/<page>` | A docs page, prerendered. `/docs` is the introduction. |
 | `/docs/<page>.md`, `/docs/index.md` | The page as markdown, for agents and "Copy page". |
 | `/docs/llms.txt`, `/docs/llms-full.txt` | Every page, linked or in full. |

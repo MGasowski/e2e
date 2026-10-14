@@ -17,12 +17,19 @@ type Artwork = {
   stars: number[];
 };
 
+export type FireflySceneOptions = {
+  /** Scales the resting starfield density; 1 = the /e2e landing field. */
+  density?: number;
+  /** Upward-drifting grains per second; 12 = the /e2e landing rate. */
+  rainPerSecond?: number;
+};
+
 /**
  * Samples the bayer artwork, flipped so light waves sit at the bottom and
  * darkness above, into a palette-indexed grid and a sparse starfield: brighter
  * colors are kept more often, seeded so the field is identical on every load.
  */
-function sampleArtwork(image: HTMLImageElement): Artwork | null {
+function sampleArtwork(image: HTMLImageElement, density: number): Artwork | null {
   const W = image.naturalWidth;
   const H = image.naturalHeight;
   const off = document.createElement("canvas");
@@ -53,7 +60,7 @@ function sampleArtwork(image: HTMLImageElement): Artwork | null {
         palette.push(`rgb(${r},${g},${b})`);
         const L = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
         const p = L * L * 1.05;
-        keepChance.push(p < 0.06 ? 0 : Math.min(1, p));
+        keepChance.push(p < 0.06 ? 0 : Math.min(1, p) * density);
       }
       cellColor[cy * cols + cx] = idx;
     }
@@ -96,7 +103,10 @@ function renderRestingField({ width, height, cols, palette, cellColor, stars }: 
  * snapped to whole device pixels, otherwise antialiasing leaves a ghost grid),
  * so everything self-heals pixel-perfectly when the cursor leaves.
  */
-export function mountFireflyScene(canvas: HTMLCanvasElement): () => void {
+export function mountFireflyScene(
+  canvas: HTMLCanvasElement,
+  { density = 1, rainPerSecond = 12 }: FireflySceneOptions = {},
+): () => void {
   const ctx = canvas.getContext("2d");
   const host = canvas.parentElement;
   if (!ctx || !host) return () => {};
@@ -120,7 +130,7 @@ export function mountFireflyScene(canvas: HTMLCanvasElement): () => void {
       maxDisplacement: 48,
       radius: 100,
       blast: { radiusScale: 4.5, strength: 1600, jitter: 200 },
-      rainPerSecond: 12,
+      rainPerSecond,
     });
 
     let dpr = 1;
@@ -220,7 +230,7 @@ export function mountFireflyScene(canvas: HTMLCanvasElement): () => void {
     .decode()
     .then(() => {
       if (signal.aborted) return;
-      const art = sampleArtwork(image);
+      const art = sampleArtwork(image, density);
       if (art) start(art);
     })
     .catch(() => {});

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { CloseIcon } from "@/components/icons/close-icon";
 import { DiscordIcon } from "@/components/icons/discord-icon";
@@ -35,6 +36,13 @@ export function E2eMobileMenu() {
             className="fixed inset-0 z-40 cursor-default"
           />
           <div className="absolute inset-x-0 top-full z-50 mt-4 flex flex-col divide-y divide-white/15 bg-[rgb(22_22_22/0.95)] inset-ring-[0.5px] inset-ring-white/80">
+            <Link
+              href="/e2e/sessions"
+              onClick={close}
+              className="flex h-12 items-center px-4 font-mono text-sm uppercase text-white/90 transition-colors hover:text-white"
+            >
+              sessions
+            </Link>
             <a
               href={E2E_DOCS_URL}
               target="_blank"

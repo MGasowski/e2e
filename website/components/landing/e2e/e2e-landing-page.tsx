@@ -6,6 +6,7 @@ import { E2eHero } from "./e2e-hero";
 import { E2eFaq } from "./faq";
 import { Reveal } from "./reveal";
 import { E2eTestimonials } from "./testimonials";
+import { E2eWebinarBanner } from "./webinar-banner";
 import { E2eWhy } from "./why-e2e";
 
 export function E2eLandingPage() {
@@ -36,6 +37,7 @@ export function E2eLandingPage() {
         </Reveal>
       </main>
       <E2eFooter />
+      <E2eWebinarBanner />
     </div>
   );
 }
