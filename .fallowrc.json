@@ -50,6 +50,8 @@
     "dev-dependencies-in-production": "warn"
   },
   "ignoreUnresolvedImports": [
-    "**/dist/**"
+    "**/dist/**",
+    "../snippets/*.jsx",
+    "./lib/docs/paths.generated.json"
   ]
 }
