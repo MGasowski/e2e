@@ -103,6 +103,8 @@ describe('appNavigation', () => {
     expect(appNavigation('http://127.0.0.1:4291/todos?tab=open#new', app)).toBe('/todos?tab=open#new');
     // Not re-encoded, so `unique()` slots still match.
     expect(appNavigation('http://127.0.0.1:4291/companies/a&b c?q=x y', app)).toBe('/companies/a&b c?q=x y');
+    // Leading whitespace and extra slashes, which the URL parser skips.
+    expect(appNavigation(' http:////127.0.0.1:4291/todos', app)).toBe('/todos');
   });
 
   it('opens a URL with no path at the root, never relative to a base path', () => {
@@ -112,10 +114,9 @@ describe('appNavigation', () => {
   });
 
   it('resolves to the URL it was cut from on the recorded origin, and to the same path on another', () => {
-    for (const url of ['http://127.0.0.1:4291/todos?tab=open#new', 'http://127.0.0.1:4291/companies/a&b c', 'http://127.0.0.1:4291?q=1']) {
+    for (const url of ['http://127.0.0.1:4291/todos?tab=open#new', 'http://127.0.0.1:4291/companies/a&b c', 'http://127.0.0.1:4291?q=1', 'http:////127.0.0.1:4291/todos']) {
       expect(new URL(appNavigation(url, app), `${app}/app/`).href).toBe(new URL(url).href);
-      const moved = new URL(appNavigation(url, app), 'http://127.0.0.1:4292/app/');
-      expect(`${moved.pathname}${moved.search}${moved.hash}`).toBe(appLocation(url, app));
+      expect(new URL(appNavigation(url, app), 'http://127.0.0.1:4292/app/').href).toBe(`http://127.0.0.1:4292${appLocation(url, app)}`);
     }
   });
 

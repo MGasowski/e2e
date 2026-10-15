@@ -99,7 +99,8 @@ export function appLocation(location: string, appOrigin: string | undefined): st
   return url.origin === appOrigin ? `${url.pathname}${url.search}${url.hash}` : location;
 }
 
-const URL_ORIGIN_PREFIX = /^[a-z][a-z\d+.-]*:\/\/[^/?#\\]*/i;
+/** Scheme and authority as a URL parser skips them: leading whitespace and any run of slashes. */
+const URL_ORIGIN_PREFIX = /^\s*[a-z][a-z\d+.-]*:[/\\]*[^/?#\\]*/i;
 
 /**
  * A navigation as a recording keeps it: a URL on the app's origin without
