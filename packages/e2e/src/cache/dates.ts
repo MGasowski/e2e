@@ -70,16 +70,16 @@ export function datePatterns(): RegExp[] {
   return [
     new RegExp(String.raw`(?<!\p{N}:?)${digits(1, 2)}:${digits(2, 2)}(?::${digits(2, 2)})?(?!:?\p{N})`, 'u'),
     new RegExp(
-      String.raw`${OPEN}(?:${digits(1, 2)}/${digits(1, 2)}/${digits(2, 4)}|${digits(1, 2)}-${digits(1, 2)}-${digits(4, 4)}|${digits(4, 4)}[/-]${digits(1, 2)}[/-]${digits(1, 2)})${CLOSE}`,
+      String.raw`${OPEN}(?:${digits(1, 2)}/${digits(1, 2)}/(?:${YEAR}|${digits(2, 2)})|${digits(1, 2)}-${digits(1, 2)}-${YEAR}|${YEAR}[/-]${digits(1, 2)}[/-]${digits(1, 2)})${CLOSE}`,
       'u',
     ),
     // A full year or two-digit parts, so a version (`2.2.1`) stays stable.
     new RegExp(
-      String.raw`${OPEN}(?:${digits(1, 2)}\.\s?${digits(1, 2)}\.\s?${digits(4, 4)}|${digits(4, 4)}\.\s?${digits(1, 2)}\.\s?${digits(1, 2)}|${digits(2, 2)}\.${digits(2, 2)}\.${digits(2, 2)}|${digits(2, 2)}\.\s${digits(1, 2)}\.\s${digits(1, 2)}\.)${CLOSE}`,
+      String.raw`${OPEN}(?:${digits(1, 2)}\.\s?${digits(1, 2)}\.\s?${YEAR}|${YEAR}\.\s?${digits(1, 2)}\.\s?${digits(1, 2)}|${digits(2, 2)}\.${digits(2, 2)}\.${digits(2, 2)}|${digits(2, 2)}\.\s${digits(1, 2)}\.\s${digits(1, 2)}\.)${CLOSE}`,
       'u',
     ),
     new RegExp(String.raw`${digits(1, 4)}\s?[年년]\s?${digits(1, 2)}\s?[月월](?:\s?${digits(1, 2)}\s?[日일])?|${digits(1, 2)}\s?[月월]\s?${digits(1, 2)}\s?[日일]`, 'u'),
     new RegExp(String.raw`${OPEN}${digits(1, 2)}\.?,?\s+(?:${connector}\s+)?${month}\.?[,،]?(?:\s+${connector})?[,،]?\s+${YEAR}${CLOSE}`, 'iu'),
-    new RegExp(String.raw`${OPEN}${YEAR}\.?(?:\s+${connector})?\s+(?:${month}\s+${digits(1, 2)}|${digits(1, 2)}\.?\s+${month})`, 'iu'),
+    new RegExp(String.raw`${OPEN}${YEAR}\.?(?:\s+${connector})?\s+(?:${month}\s+${digits(1, 2)}|${digits(1, 2)}\.?\s+${month})${CLOSE}`, 'iu'),
   ];
 }

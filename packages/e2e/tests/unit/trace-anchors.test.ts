@@ -216,9 +216,10 @@ describe('describeDelta', () => {
       node('k', { text: 'Call 123-45-67' }),
       node('l', { text: 'Affichage de 1 à 25 des 1500 résultats' }),
       node('m', { text: '1 Lizenz pro Jahr 1299 €' }),
+      node('o', { text: 'Ticket 12-34-5678' }),
       node('n', { text: 'Release pipeline' }),
     ]);
-    expect(appeared(nodes([heading]), codes)).toHaveLength(6);
+    expect(appeared(nodes([heading]), codes)).toHaveLength(7);
   });
 
   it('keeps a count the step made appear, which is its result, and skips one that only moved or that came with another route, which is the data', () => {
