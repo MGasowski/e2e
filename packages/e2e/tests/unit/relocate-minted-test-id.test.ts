@@ -96,6 +96,7 @@ describe('relocation by test id shape', () => {
   it('is not tried for a test id that only numbers its node, nor onto a node of another role or with a name', () => {
     expect(relocateDescriptor({ ...alone, testId: 'todo-item-12' }, screen(canvasNode('b', 'todo-item-13')))).toEqual(notFound);
     expect(relocateDescriptor({ ...alone, testId: 'order-12345678' }, screen(canvasNode('b', 'order-87654321')))).toEqual(notFound);
+    expect(relocateDescriptor({ ...alone, testId: 'row-1234567890' }, screen(canvasNode('b', 'row-9876543210')))).toEqual(notFound);
     expect(relocateDescriptor(alone, screen(canvasNode('b', B, { role: 'button' })))).toEqual(notFound);
     expect(relocateDescriptor(alone, screen(canvasNode('b', B, { name: 'Start' })))).toEqual(notFound);
   });

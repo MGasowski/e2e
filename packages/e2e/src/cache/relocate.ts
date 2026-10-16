@@ -123,11 +123,11 @@ export function descriptorTiers(descriptor: TraceTargetDescriptor): readonly Tra
 
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
-/** A test id part an app mints: a hex id or hash, a cuid, an epoch timestamp. */
+/** A test id part an app mints: a hex id or hash, a cuid, a recent epoch time in seconds or milliseconds. */
 const MINTED_TEST_ID_PART: readonly RegExp[] = [
   /^(?=.*\d)(?=.*[a-f])[0-9a-f]{8,}$/i,
   /^(?=(?:\D*\d){2})(?=.*[A-Za-z])[A-Za-z0-9]{8,}$/,
-  /^\d{10,}$/,
+  /^1[5-9]\d{8}(?:\d{3})?$/,
 ];
 
 /**
