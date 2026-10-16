@@ -105,6 +105,8 @@ describe('appNavigation', () => {
     expect(appNavigation('http://127.0.0.1:4291/companies/a&b c?q=x y', app)).toBe('/companies/a&b c?q=x y');
     // Leading whitespace and extra slashes, which the URL parser skips.
     expect(appNavigation(' http:////127.0.0.1:4291/todos', app)).toBe('/todos');
+    expect(appNavigation('https://app.test:443/x', 'https://app.test')).toBe('/x');
+    expect(appNavigation('https://APP.test/x', 'https://app.test')).toBe('/x');
   });
 
   it('opens a URL with no path at the root, never relative to a base path', () => {

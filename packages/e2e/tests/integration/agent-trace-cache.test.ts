@@ -23,8 +23,8 @@ import {
   type RunOutcome,
 } from '../helpers/run-project.ts';
 import { readEntries } from '../helpers/trace-cache.ts';
+import { findNode } from '../helpers/executor-tree.ts';
 import type {
-  ExecutorNode,
   ReplayedPrefix,
   StepExecutor,
   StepExecutorContext,
@@ -910,17 +910,6 @@ test('opens the about page', async ({ app, agent, screen }) => {
   await expect(screen.getByRole('heading', 'About')).toBeVisible();
 });
 `;
-
-/** Depth-first search of the node tree. */
-function findNode(node: ExecutorNode | undefined, match: (node: ExecutorNode) => boolean): ExecutorNode | undefined {
-  if (node === undefined) return undefined;
-  if (match(node)) return node;
-  for (const child of node.children ?? []) {
-    const found = findNode(child, match);
-    if (found !== undefined) return found;
-  }
-  return undefined;
-}
 
 /** Navigates to the About link's href from the node tree, an absolute URL on the app. */
 function aboutLinkExecutor(record: ExecutorRecord): StepExecutor {
