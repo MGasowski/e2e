@@ -301,8 +301,8 @@ matches. Misses and hand-offs use the model; `agent.assert`,
 - A replay needs the app on the recorded route (origin, path, and query,
   ids and tokens aside; unless the recording opens with a navigation),
   re-finds each control by role, name, test id, placeholder, input purpose,
-  and its named row (an unnamed control with twins and no named container
-  hands off), and passes alone only when the recorded end route is back,
+  and its named row (an unnamed control, or one known only by a generated
+  test id, with twins and no named container hands off), and passes alone only when the recorded end route is back,
   every control that appeared (with its checked or selected state) is
   there, every one that went away is gone, at least one of those changed
   during the replay, and no new alert showed; otherwise the agent takes
