@@ -26,8 +26,9 @@ attempt, because the app could show the value anywhere. Every known secret value
 Redaction matches strings, and only a secret fill turns model screenshots off:
 
 - **Screenshots, video, and downloads.** Screenshots mask secure fields
-  only, and video and downloads aren't masked. If the test typed a password,
-  check them before you share them.
+  only, video masks nothing, and a download other than a redacted text file
+  is kept as served. If the test typed a password, check them before you
+  share them.
 - **`command.log`.** It holds your app's stdout and stderr verbatim. Keep
   secrets out of your app's output.
 - **Transformed values.** The last four characters of a key, or its base64,

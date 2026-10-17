@@ -139,9 +139,9 @@ const shot = await app.screenshot('after-checkout');
 | `ENGINE_FAILURE` | The capture failed. |
 
 <Note>
-Once a `Secret` has been filled, pixels are withheld for the rest of the
-session, including later tests in a serial group. A denied screenshot creates
-no artifact.
+The screenshot masks secure fields only, after a `Secret` fill too. A secret
+the app shows anywhere else is in the image. See
+[screenshots after a secret fill](/reference/security#screenshots-after-a-secret-fill).
 </Note>
 
 ## Types

@@ -126,7 +126,7 @@ label. `browser` (`Browser`): browser targets, import `test` from `@e2e-dev/web`
 - `clearState()`: clears cookies and storage, recreates the context, reopens
   the base URL.
 - `screenshot(label?)`: saves a redacted screenshot artifact and returns its
-  path. Denied after a secret fill (see Sign-in sessions).
+  path. It masks secure fields only (see Sign-in sessions).
 
 `clearState()` is `UNSUPPORTED_CAPABILITY` with `connect.reconnectEndpoint`
 or an attempt-scoped browser provider; on a device with no pinned `app`, both

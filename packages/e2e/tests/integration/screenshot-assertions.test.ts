@@ -271,8 +271,8 @@ test('after a fill', async ({ app, screen }) => {
         { appUrl: FAKE_APP_URL, config: fakeConfig(plain, { secrets: { token: 'a-very-secret-token' } }) },
       );
       try {
-        expect(attemptOf(afterFill.outcome, 'after a fill').error?.code).not.toBe('POLICY_DENIED');
-        expect(existsSync(path.join(afterFill.project.dir, 'tests', 'fill.e2e.ts-snapshots'))).toBe(true);
+        expect(attemptOf(afterFill.outcome, 'after a fill').error?.message).toContain(`no stored screenshot at tests/fill.e2e.ts-snapshots/home${SUFFIX}.png`);
+        expect(existsSync(path.join(afterFill.project.dir, 'tests', 'fill.e2e.ts-snapshots', `home${SUFFIX}.png`))).toBe(true);
       } finally {
         afterFill.project.cleanup();
       }

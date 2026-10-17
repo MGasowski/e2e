@@ -54,7 +54,7 @@ test('downloads without a fill', async ({ app, screen, browser }) => {
 test('fills a visible field', async ({ app, screen }) => {
   await app.open();
   await screen.getByLabel('Focus target').fill(credentials.user('member').password);
-  expect((await app.screenshot()).endsWith('.png')).toBe(true);
+  await app.screenshot('after-fill');
 });
 `;
 
@@ -127,6 +127,13 @@ describe('filled secrets', () => {
       .flatMap((result) => result.attempts)
       .flatMap((attempt) => (attempt.error === undefined ? [] : [attempt.error]));
     expect(outcome.status, JSON.stringify({ runErrors: outcome.report.run.errors, failures }, null, 2)).toBe('passed');
+  });
+
+  it('keeps a screenshot after a fill', () => {
+    const attempt = resultByTitle(outcome, 'fills a visible field').attempts[0]!;
+    expect(attempt.artifacts.filter((artifact) => artifact.kind === 'screenshot')).toEqual([
+      expect.objectContaining({ path: expect.stringMatching(/after-fill.*\.png$/) }),
+    ]);
   });
 
   it('downloads after a fill: a text download is rewritten, labelled complete, and stored clean', () => {
