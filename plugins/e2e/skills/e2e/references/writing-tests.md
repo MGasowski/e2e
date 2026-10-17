@@ -340,11 +340,11 @@ test('the dashboard opens directly', { session: 'admin' }, async ({ app, screen 
   match `[A-Za-z0-9_.-]{1,128}`.
 - A session holds cookies, local storage, and IndexedDB for one run,
   encrypted and deleted at cleanup; server state is not part of it.
-- Once a secret is filled, model pixels and assertion screenshots are
-  withheld for the rest of that session (later serial members included) and
-  `app.screenshot()` is `POLICY_DENIED`. A restored session keeps its setup's
-  taint; a setup that signs in without a fill (`browser.setCookies`, say) leaves
-  screenshots available.
+- Once a secret is filled, model pixels are withheld for the rest of that
+  session (later serial members included). Artifact screenshots
+  (`app.screenshot()`, assertion, failure) stay on and mask secure fields
+  only. A restored session keeps its setup's taint; a setup that signs in
+  without a fill (`browser.setCookies`, say) leaves model pixels available.
 - Credentials live in the config, values in the environment:
 
 ```ts
