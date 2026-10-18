@@ -202,6 +202,7 @@ export function createFixtures(environment: AttemptEnvironment): AttemptFixtures
     secrets,
     redact: ledger.redact,
     redactCut: ledger.redactCut,
+    redactBound: ledger.redactBound,
     exposure,
     artifacts: environment.artifacts,
     ...(environment.cache !== undefined ? { cache: environment.cache } : {}),
